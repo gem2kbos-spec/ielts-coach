@@ -1,0 +1,22 @@
+{
+  "id": "writing-task1-002",
+  "module": "writing",
+  "subtype": "task1_chart",
+  "difficulty": "medium",
+  "tags": ["line_chart", "environment"],
+  "source": "builtin_public",
+  "content": {
+    "chartType": "line",
+    "description": "The graph below shows carbon dioxide emissions (in million tonnes) from three countries between 2000 and 2020. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+    "xKey": "year",
+    "seriesKeys": ["Country A", "Country B", "Country C"],
+    "unit": "million tonnes",
+    "data": [
+      { "year": 2000, "Country A": 120, "Country B": 80, "Country C": 40 },
+      { "year": 2005, "Country A": 135, "Country B": 95, "Country C": 55 },
+      { "year": 2010, "Country A": 150, "Country B": 110, "Country C": 75 },
+      { "year": 2015, "Country A": 140, "Country B": 125, "Country C": 95 },
+      { "year": 2020, "Country A": 110, "Country B": 130, "Country C": 120 }
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part2-004",
+  "module": "speaking",
+  "subtype": "part2_cue_card",
+  "difficulty": "medium",
+  "tags": ["event"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "Describe a memorable event in your life.",
+    "bullets": [
+      "what the event was",
+      "when and where it happened",
+      "who was involved",
+      "and explain why it was memorable"
+    ]
+  }
+}

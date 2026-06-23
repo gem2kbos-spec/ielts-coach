@@ -1,0 +1,12 @@
+{
+  "id": "writing-task2-003",
+  "module": "writing",
+  "subtype": "task2_argumentative",
+  "difficulty": "hard",
+  "tags": ["environment", "problem_solution"],
+  "source": "builtin_public",
+  "content": {
+    "essay_type": "problem_solution",
+    "prompt": "Plastic waste is becoming a serious environmental problem in many countries. What are the causes of this problem and what solutions can be implemented?"
+  }
+}

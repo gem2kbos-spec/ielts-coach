@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part1-005",
+  "module": "speaking",
+  "subtype": "part1_warmup",
+  "difficulty": "easy",
+  "tags": ["food"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "Food",
+    "questions": [
+      "What kind of food do you like?",
+      "Do you prefer cooking at home or eating out?",
+      "Has your diet changed compared to a few years ago?",
+      "Is food an important part of celebrations in your culture?"
+    ]
+  }
+}

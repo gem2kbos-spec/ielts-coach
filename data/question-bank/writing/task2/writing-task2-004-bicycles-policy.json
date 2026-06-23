@@ -1,0 +1,12 @@
+{
+  "id": "writing-task2-004",
+  "module": "writing",
+  "subtype": "task2_argumentative",
+  "difficulty": "medium",
+  "tags": ["government", "transport", "advantage_disadvantage"],
+  "source": "builtin_public",
+  "content": {
+    "essay_type": "advantage_disadvantage",
+    "prompt": "Governments in some countries are encouraging people to use bicycles instead of cars to reduce traffic and pollution. What are the advantages and disadvantages of this policy?"
+  }
+}

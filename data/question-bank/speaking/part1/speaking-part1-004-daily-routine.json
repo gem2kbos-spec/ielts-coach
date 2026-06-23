@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part1-004",
+  "module": "speaking",
+  "subtype": "part1_warmup",
+  "difficulty": "easy",
+  "tags": ["daily_routine"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "Daily Routine",
+    "questions": [
+      "What is your typical day like?",
+      "Which part of the day do you feel most energetic?",
+      "Has your daily routine changed in the last few years?",
+      "Do you think it's important to have a fixed routine?"
+    ]
+  }
+}

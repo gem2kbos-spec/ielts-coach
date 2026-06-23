@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part2-005",
+  "module": "speaking",
+  "subtype": "part2_cue_card",
+  "difficulty": "medium",
+  "tags": ["skill"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "Describe a skill you would like to learn.",
+    "bullets": [
+      "what skill it is",
+      "why you want to learn it",
+      "how you would learn it",
+      "and explain how this skill would help you"
+    ]
+  }
+}

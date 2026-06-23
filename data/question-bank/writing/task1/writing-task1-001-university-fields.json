@@ -1,0 +1,22 @@
+{
+  "id": "writing-task1-001",
+  "module": "writing",
+  "subtype": "task1_chart",
+  "difficulty": "medium",
+  "tags": ["bar_chart", "education"],
+  "source": "builtin_public",
+  "content": {
+    "chartType": "bar",
+    "description": "The chart below shows the percentage of students enrolled in five different fields of study at a university in 2010 and 2020. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+    "xKey": "field",
+    "seriesKeys": ["2010", "2020"],
+    "unit": "%",
+    "data": [
+      { "field": "Engineering", "2010": 22, "2020": 30 },
+      { "field": "Business", "2010": 28, "2020": 25 },
+      { "field": "Arts", "2010": 18, "2020": 12 },
+      { "field": "Science", "2010": 20, "2020": 23 },
+      { "field": "Medicine", "2010": 12, "2020": 10 }
+    ]
+  }
+}

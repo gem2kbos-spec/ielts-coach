@@ -1,0 +1,30 @@
+{
+  "topic": "skill",
+  "angles": [
+    {
+      "angle": "Adaptability and digital literacy are likely to outweigh specific technical skills in the future job market",
+      "example": "workers who can quickly learn new software tend to outlast those with narrow, outdated expertise",
+      "expressions": ["future-proof skill", "transferable skill"]
+    },
+    {
+      "angle": "Self-study suits motivated learners but lacks the structure and feedback of formal education",
+      "example": "online courses let you learn at your own pace, but without a mentor, gaps in understanding can go uncorrected",
+      "expressions": ["learn at one's own pace", "lack structured feedback"]
+    },
+    {
+      "angle": "An overemphasis on academic subjects can leave graduates underprepared for practical workplace demands",
+      "example": "a graduate with strong theoretical knowledge may still struggle with basic workplace communication",
+      "expressions": ["theory-practice gap", "workplace-ready"]
+    },
+    {
+      "angle": "Online learning has democratised access to skills but raised concerns about quality and credential value",
+      "example": "anyone with internet access can now learn coding, though employers still question how rigorous some courses are",
+      "expressions": ["democratise access to", "credential inflation"]
+    },
+    {
+      "angle": "Soft skills like communication and teamwork are increasingly valued alongside technical ability",
+      "example": "many employers now rank collaboration skills as highly as coding ability in tech hiring",
+      "expressions": ["soft skills", "complement technical expertise"]
+    }
+  ]
+}

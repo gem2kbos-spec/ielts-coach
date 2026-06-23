@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part2-006",
+  "module": "speaking",
+  "subtype": "part2_cue_card",
+  "difficulty": "medium",
+  "tags": ["news"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "Describe a piece of news you found interesting.",
+    "bullets": [
+      "what the news was",
+      "where you heard or read it",
+      "what happened",
+      "and explain why you found it interesting"
+    ]
+  }
+}

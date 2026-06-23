@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part3-001",
+  "module": "speaking",
+  "subtype": "part3_discussion",
+  "difficulty": "hard",
+  "tags": ["person"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "person",
+    "questions": [
+      "What qualities make someone a good role model?",
+      "Do you think celebrities have too much influence on young people?",
+      "Is it more common nowadays for people to be influenced by family members or by public figures?",
+      "How has social media changed the way people choose role models?"
+    ]
+  }
+}

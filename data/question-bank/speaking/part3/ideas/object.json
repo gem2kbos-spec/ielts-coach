@@ -1,0 +1,30 @@
+{
+  "topic": "object",
+  "angles": [
+    {
+      "angle": "Consumer culture has made possessions more disposable, weakening their sentimental value",
+      "example": "fast fashion items are often discarded within a season, unlike a grandparent's hand-repaired tools",
+      "expressions": ["a throwaway culture", "built to last"]
+    },
+    {
+      "angle": "Frequent upgrading of devices and clothing has a significant environmental cost",
+      "example": "the demand for the latest smartphone model contributes to e-waste and rare-earth mining",
+      "expressions": ["contribute to e-waste", "the environmental footprint of consumption"]
+    },
+    {
+      "angle": "Right-to-repair regulation is one practical way to extend product lifespans",
+      "example": "some countries now require manufacturers to provide spare parts for years after a product launches",
+      "expressions": ["legislate for durability", "extend a product's lifespan"]
+    },
+    {
+      "angle": "Possessions can serve as anchors for memory and identity, not just utility",
+      "example": "a worn-out journal can hold more personal meaning than its replacement value suggests",
+      "expressions": ["sentimental value", "a tangible link to the past"]
+    },
+    {
+      "angle": "Minimalism as a counter-trend suggests changing attitudes toward materialism",
+      "example": "younger generations increasingly favour experiences over owning physical goods",
+      "expressions": ["a shift in priorities", "experiences over possessions"]
+    }
+  ]
+}

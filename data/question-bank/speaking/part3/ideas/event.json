@@ -1,0 +1,30 @@
+{
+  "topic": "event",
+  "angles": [
+    {
+      "angle": "Celebrations reinforce social bonds and a shared sense of identity",
+      "example": "a community festival gives neighbours a reason to interact outside of daily routines",
+      "expressions": ["strengthen social ties", "a shared sense of belonging"]
+    },
+    {
+      "angle": "Commercialisation has changed the meaning of many traditional celebrations",
+      "example": "some holidays are now associated more with shopping promotions than their original significance",
+      "expressions": ["commercialised beyond recognition", "lose its original significance"]
+    },
+    {
+      "angle": "Technology allows celebrations to be shared remotely, but this changes their nature",
+      "example": "a livestreamed wedding lets distant relatives attend, yet it can't fully replace being physically present",
+      "expressions": ["bridge the distance", "lack the same atmosphere"]
+    },
+    {
+      "angle": "Public funding for celebrations can be justified by tourism and community benefits, but is often debated during budget constraints",
+      "example": "a city-funded festival can boost local business, but critics argue the money could fund essential services instead",
+      "expressions": ["a contentious use of public funds", "a worthwhile investment"]
+    },
+    {
+      "angle": "Smaller, personal celebrations are gaining popularity as alternatives to large traditional events",
+      "example": "intimate gatherings have become more common as people prioritise meaningful connections over scale",
+      "expressions": ["scaled-down celebrations", "quality over quantity"]
+    }
+  ]
+}

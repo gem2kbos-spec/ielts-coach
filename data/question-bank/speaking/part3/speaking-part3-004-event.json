@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part3-004",
+  "module": "speaking",
+  "subtype": "part3_discussion",
+  "difficulty": "hard",
+  "tags": ["event"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "event",
+    "questions": [
+      "Why do you think people enjoy celebrating special events?",
+      "Do you think traditional celebrations are becoming less important?",
+      "How has technology changed the way people celebrate events?",
+      "Should governments fund large public celebrations?"
+    ]
+  }
+}

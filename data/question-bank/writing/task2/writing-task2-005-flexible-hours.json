@@ -1,0 +1,12 @@
+{
+  "id": "writing-task2-005",
+  "module": "writing",
+  "subtype": "task2_argumentative",
+  "difficulty": "medium",
+  "tags": ["work", "agree_disagree"],
+  "source": "builtin_public",
+  "content": {
+    "essay_type": "agree_disagree",
+    "prompt": "Some people think that employees should be allowed to choose their own working hours, while their employers think this would create problems in the workplace. To what extent do you agree or disagree?"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "writing-task2-008",
+  "module": "writing",
+  "subtype": "task2_argumentative",
+  "difficulty": "medium",
+  "tags": ["urbanization", "transport", "problem_solution"],
+  "source": "builtin_public",
+  "content": {
+    "essay_type": "problem_solution",
+    "prompt": "As cities continue to grow, traffic congestion has become a major problem in many urban areas. What are the causes of this problem and what measures could be taken to solve it?"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part3-006",
+  "module": "speaking",
+  "subtype": "part3_discussion",
+  "difficulty": "hard",
+  "tags": ["news"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "news",
+    "questions": [
+      "How have people's habits of consuming news changed in recent years?",
+      "Do you think social media is a reliable source of news?",
+      "What responsibilities do news organizations have to the public?",
+      "Is it healthy for people to follow the news every day?"
+    ]
+  }
+}

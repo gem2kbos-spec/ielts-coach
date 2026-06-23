@@ -1,0 +1,20 @@
+{
+  "id": "writing-task1-004",
+  "module": "writing",
+  "subtype": "task1_chart",
+  "difficulty": "medium",
+  "tags": ["table", "urban"],
+  "source": "builtin_public",
+  "content": {
+    "chartType": "table",
+    "description": "The table below shows the population (in millions) of four cities in 2000, 2010 and 2020. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+    "columns": ["city", "2000", "2010", "2020"],
+    "unit": "million",
+    "data": [
+      { "city": "Cairo", "2000": 10.4, "2010": 16.9, "2020": 20.5 },
+      { "city": "Lagos", "2000": 7.2, "2010": 11.2, "2020": 14.4 },
+      { "city": "Manila", "2000": 9.9, "2010": 11.8, "2020": 13.9 },
+      { "city": "Lima", "2000": 7.3, "2010": 9.1, "2020": 10.7 }
+    ]
+  }
+}

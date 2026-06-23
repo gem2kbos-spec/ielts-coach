@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part1-003",
+  "module": "speaking",
+  "subtype": "part1_warmup",
+  "difficulty": "easy",
+  "tags": ["hobbies"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "Hobbies",
+    "questions": [
+      "What do you usually do in your free time?",
+      "How did you become interested in this hobby?",
+      "Do you prefer hobbies you do alone or with others?",
+      "Has your taste in hobbies changed since you were a child?"
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "topic": "news",
+  "angles": [
+    {
+      "angle": "News consumption has shifted from scheduled broadcasts to constant, on-demand updates",
+      "example": "people now check news apps throughout the day rather than waiting for the evening bulletin",
+      "expressions": ["an always-on news cycle", "on-demand consumption"]
+    },
+    {
+      "angle": "Social media accelerates the spread of news but also amplifies misinformation",
+      "example": "an unverified claim can go viral before fact-checkers have a chance to respond",
+      "expressions": ["amplify misinformation", "outpace fact-checking"]
+    },
+    {
+      "angle": "Traditional news organisations carry a responsibility for accuracy that many social platforms don't enforce",
+      "example": "a newspaper retracts and corrects errors publicly, while a viral post rarely gets the same correction",
+      "expressions": ["uphold journalistic standards", "accountability for accuracy"]
+    },
+    {
+      "angle": "Constant exposure to negative news can affect mental wellbeing, leading some to limit their intake",
+      "example": "the term 'doomscrolling' describes the habit of compulsively consuming distressing news",
+      "expressions": ["doomscrolling", "news fatigue"]
+    },
+    {
+      "angle": "Algorithmic curation can trap people in narrow viewpoints, reducing exposure to balanced perspectives",
+      "example": "personalised feeds tend to show more of what a user already agrees with",
+      "expressions": ["an echo chamber", "algorithmic curation"]
+    }
+  ]
+}

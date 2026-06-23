@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part2-003",
+  "module": "speaking",
+  "subtype": "part2_cue_card",
+  "difficulty": "medium",
+  "tags": ["object"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "Describe an object that is important to you.",
+    "bullets": [
+      "what it is",
+      "how you got it",
+      "what you use it for",
+      "and explain why it is important to you"
+    ]
+  }
+}

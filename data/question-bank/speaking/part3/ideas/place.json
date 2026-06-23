@@ -1,0 +1,30 @@
+{
+  "topic": "place",
+  "angles": [
+    {
+      "angle": "Cheaper travel and social media exposure have driven the tourism boom",
+      "example": "budget airlines and Instagram-worthy locations push more people to travel than a generation ago",
+      "expressions": ["a budget-friendly option", "go viral", "fuel a trend"]
+    },
+    {
+      "angle": "Overtourism can erode the very culture that attracts visitors in the first place",
+      "example": "a historic old town overwhelmed by tour groups loses the authentic daily life that made it charming",
+      "expressions": ["lose its authentic character", "strain local infrastructure"]
+    },
+    {
+      "angle": "Virtual reality can supplement but is unlikely to replace travel because of the sensory and social dimension of being there",
+      "example": "VR can show you the Louvre, but it can't replicate the smell of a Parisian street or a conversation with a local",
+      "expressions": ["a poor substitute for", "the lived experience of a place"]
+    },
+    {
+      "angle": "Quota systems and seasonal pricing are practical tools governments use to manage overtourism",
+      "example": "some cities now charge entry fees during peak season to spread out visitor numbers",
+      "expressions": ["spread out demand", "a market-based solution"]
+    },
+    {
+      "angle": "Tourism can fund conservation when managed well, creating a positive feedback loop",
+      "example": "entrance fees to national parks are often reinvested in wildlife protection",
+      "expressions": ["a virtuous cycle", "reinvest revenue into conservation"]
+    }
+  ]
+}

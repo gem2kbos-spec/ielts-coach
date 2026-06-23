@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part3-002",
+  "module": "speaking",
+  "subtype": "part3_discussion",
+  "difficulty": "hard",
+  "tags": ["place"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "place",
+    "questions": [
+      "Why do you think tourism has grown so much in recent decades?",
+      "What are the negative effects of tourism on local communities?",
+      "Do you think virtual reality could replace real travel in the future?",
+      "Should governments limit the number of tourists visiting popular destinations?"
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part3-005",
+  "module": "speaking",
+  "subtype": "part3_discussion",
+  "difficulty": "hard",
+  "tags": ["skill"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "skill",
+    "questions": [
+      "What skills do you think will be most important in the future job market?",
+      "Is it better to learn a new skill through formal education or self-study?",
+      "Do you think schools should focus more on practical skills than academic subjects?",
+      "How has online learning changed the way people acquire new skills?"
+    ]
+  }
+}

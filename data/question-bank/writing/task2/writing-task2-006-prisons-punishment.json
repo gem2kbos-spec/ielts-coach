@@ -1,0 +1,12 @@
+{
+  "id": "writing-task2-006",
+  "module": "writing",
+  "subtype": "task2_argumentative",
+  "difficulty": "hard",
+  "tags": ["crime", "discussion"],
+  "source": "builtin_public",
+  "content": {
+    "essay_type": "discussion",
+    "prompt": "Some people believe that prisons are the best way to deal with criminals, while others think alternative forms of punishment are more effective. Discuss both views and give your own opinion."
+  }
+}

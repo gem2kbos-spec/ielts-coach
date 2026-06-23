@@ -1,0 +1,23 @@
+{
+  "id": "writing-task1-006",
+  "module": "writing",
+  "subtype": "task1_chart",
+  "difficulty": "medium",
+  "tags": ["line_chart", "economy"],
+  "source": "builtin_public",
+  "content": {
+    "chartType": "line",
+    "description": "The line graph below shows the average house price (in thousand US dollars) in a city between 2014 and 2023. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+    "xKey": "year",
+    "seriesKeys": ["price"],
+    "unit": "thousand USD",
+    "data": [
+      { "year": 2014, "price": 220 },
+      { "year": 2016, "price": 250 },
+      { "year": 2018, "price": 310 },
+      { "year": 2020, "price": 290 },
+      { "year": 2022, "price": 380 },
+      { "year": 2023, "price": 420 }
+    ]
+  }
+}

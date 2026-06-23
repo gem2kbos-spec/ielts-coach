@@ -1,0 +1,15 @@
+node_modules/
+data/ielts.db
+data/ielts.db-*
+data/audio/recordings/*
+!data/audio/recordings/.gitkeep
+data/user-imports/*
+!data/user-imports/.gitkeep
+data/audio/tts_cache/*
+!data/audio/tts_cache/.gitkeep
+tools/whisper.cpp/
+tools/models/
+client/dist/
+*.log
+.DS_Store
+.env

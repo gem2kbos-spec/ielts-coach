@@ -1,0 +1,30 @@
+{
+  "topic": "person",
+  "angles": [
+    {
+      "angle": "Role models shape values more through consistent behaviour than through single dramatic acts",
+      "example": "a teacher who shows up prepared every day teaches discipline more effectively than a one-off inspiring speech",
+      "expressions": ["lead by example", "have a lasting impact on someone's outlook", "a source of quiet inspiration"]
+    },
+    {
+      "angle": "Celebrity influence is often shallow and short-lived compared to influence from people we know personally",
+      "example": "fans imitate a celebrity's style but rarely adopt their actual values or work ethic",
+      "expressions": ["a fleeting trend", "skin-deep admiration", "genuine, long-term influence"]
+    },
+    {
+      "angle": "Social media has made it easier to access role models but harder to verify their authenticity",
+      "example": "an influencer's curated lifestyle online may not reflect their real character",
+      "expressions": ["a curated persona", "take something at face value", "filter out the noise"]
+    },
+    {
+      "angle": "Family influence tends to be underestimated in discussions about role models",
+      "example": "a grandparent's resilience during hard times can shape a person's work ethic for life",
+      "expressions": ["instil a value in someone", "set the tone for someone's upbringing"]
+    },
+    {
+      "angle": "The best role models are often those who show how to handle failure, not just success",
+      "example": "an athlete who openly discusses a losing season can teach more about perseverance than a highlight reel",
+      "expressions": ["bounce back from setbacks", "model resilience"]
+    }
+  ]
+}

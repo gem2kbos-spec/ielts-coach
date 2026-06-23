@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part2-002",
+  "module": "speaking",
+  "subtype": "part2_cue_card",
+  "difficulty": "medium",
+  "tags": ["place"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "Describe a place you would like to visit in the future.",
+    "bullets": [
+      "where it is",
+      "how you know about this place",
+      "what you would do there",
+      "and explain why you want to visit this place"
+    ]
+  }
+}

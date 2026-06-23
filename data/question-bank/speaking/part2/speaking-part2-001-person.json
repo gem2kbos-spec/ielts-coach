@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part2-001",
+  "module": "speaking",
+  "subtype": "part2_cue_card",
+  "difficulty": "medium",
+  "tags": ["person"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "Describe a person who has influenced you a lot.",
+    "bullets": [
+      "who this person is",
+      "how you know this person",
+      "what this person has done",
+      "and explain why this person has influenced you so much"
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part1-001",
+  "module": "speaking",
+  "subtype": "part1_warmup",
+  "difficulty": "easy",
+  "tags": ["hometown"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "Hometown",
+    "questions": [
+      "Where is your hometown?",
+      "What do you like most about your hometown?",
+      "Has your hometown changed much in recent years?",
+      "Would you like to live there in the future?"
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part3-003",
+  "module": "speaking",
+  "subtype": "part3_discussion",
+  "difficulty": "hard",
+  "tags": ["object"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "object",
+    "questions": [
+      "Do people today value material possessions more than people did in the past?",
+      "What are the environmental impacts of people frequently replacing their belongings?",
+      "Should manufacturers be required to make products that last longer?",
+      "How do personal possessions reflect a person's identity?"
+    ]
+  }
+}

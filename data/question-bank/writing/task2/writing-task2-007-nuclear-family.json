@@ -1,0 +1,12 @@
+{
+  "id": "writing-task2-007",
+  "module": "writing",
+  "subtype": "task2_argumentative",
+  "difficulty": "medium",
+  "tags": ["family", "society", "positive_negative"],
+  "source": "builtin_public",
+  "content": {
+    "essay_type": "positive_negative",
+    "prompt": "In the past, children grew up in larger families with grandparents and other relatives living together. Nowadays, many children grow up in smaller, nuclear families. Is this a positive or negative change?"
+  }
+}

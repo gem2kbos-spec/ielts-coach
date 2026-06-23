@@ -1,0 +1,12 @@
+{
+  "id": "writing-task2-002",
+  "module": "writing",
+  "subtype": "task2_argumentative",
+  "difficulty": "medium",
+  "tags": ["technology", "society", "positive_negative"],
+  "source": "builtin_public",
+  "content": {
+    "essay_type": "positive_negative",
+    "prompt": "Many people now spend a large amount of time on social media instead of meeting friends in person. Do you think this is a positive or negative development?"
+  }
+}

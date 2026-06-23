@@ -1,0 +1,17 @@
+{
+  "id": "speaking-part1-002",
+  "module": "speaking",
+  "subtype": "part1_warmup",
+  "difficulty": "easy",
+  "tags": ["work", "study"],
+  "source": "builtin_public",
+  "content": {
+    "topic": "Work or Study",
+    "questions": [
+      "Do you work or are you a student?",
+      "What do you do / What are you studying?",
+      "Why did you choose this job / subject?",
+      "What do you like most about it?"
+    ]
+  }
+}

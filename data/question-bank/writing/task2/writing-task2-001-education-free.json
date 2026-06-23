@@ -1,0 +1,12 @@
+{
+  "id": "writing-task2-001",
+  "module": "writing",
+  "subtype": "task2_argumentative",
+  "difficulty": "medium",
+  "tags": ["education", "discussion"],
+  "source": "builtin_public",
+  "content": {
+    "essay_type": "discussion",
+    "prompt": "Some people believe that university education should be free for all students, while others think students should pay for their own education. Discuss both views and give your own opinion."
+  }
+}

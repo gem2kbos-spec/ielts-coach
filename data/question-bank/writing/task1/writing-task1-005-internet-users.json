@@ -1,0 +1,23 @@
+{
+  "id": "writing-task1-005",
+  "module": "writing",
+  "subtype": "task1_chart",
+  "difficulty": "easy",
+  "tags": ["bar_chart", "technology"],
+  "source": "builtin_public",
+  "content": {
+    "chartType": "bar",
+    "description": "The bar chart below shows the percentage of internet users in different age groups in one country in 2022. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+    "xKey": "ageGroup",
+    "seriesKeys": ["percentage"],
+    "unit": "%",
+    "data": [
+      { "ageGroup": "16-24", "percentage": 96 },
+      { "ageGroup": "25-34", "percentage": 94 },
+      { "ageGroup": "35-44", "percentage": 88 },
+      { "ageGroup": "45-54", "percentage": 76 },
+      { "ageGroup": "55-64", "percentage": 58 },
+      { "ageGroup": "65+", "percentage": 32 }
+    ]
+  }
+}
