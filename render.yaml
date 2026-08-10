@@ -3,7 +3,7 @@ services:
     name: ielts-coach
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: npm ci && npm rebuild better-sqlite3 && npm run build
     startCommand: npm run start
     healthCheckPath: /api/health
     envVars:
