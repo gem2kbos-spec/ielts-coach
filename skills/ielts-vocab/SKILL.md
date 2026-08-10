@@ -13,13 +13,13 @@ allowed-tools:
 
 打开页面：
 ```bash
-bash ~/ielts-coach/skills/_shared/ensure-server.sh
+bash ~/ielts-coach/skills/_shared/ensure-server.sh   # 输出的TOKEN行是下面$TOKEN的值
 open <base_url>/vocab
 ```
 
 如果用户想在对话里直接查一个词（不开浏览器），可以调接口：
 ```bash
-curl -s -X POST http://localhost:3000/api/vocab -H "Content-Type: application/json" \
+curl -s -X POST http://localhost:3000/api/vocab -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"word": "ubiquitous", "contextSentence": "可选，给个例句上下文释义更准"}'
 ```
 

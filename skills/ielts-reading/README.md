@@ -12,11 +12,11 @@ open http://localhost:5173/reading          # 选题菜单
 open http://localhost:5173/reading/freeread # 自由阅读(老的纯vocab标记模式)
 ```
 
-或直接调接口：
+或直接调接口（都要带登录token，`$TOKEN`取自`ensure-server.sh`输出）：
 
 ```bash
-curl -s -F "file=@some-reading.pdf" http://localhost:3000/api/reading/parse-pdf   # 预览解析
-curl -s http://localhost:3000/api/reading/passages                                # 题库列表+完成状态
+curl -s -H "Authorization: Bearer $TOKEN" -F "file=@some-reading.pdf" http://localhost:3000/api/reading/parse-pdf   # 预览解析
+curl -s -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/reading/passages                                # 题库列表+完成状态
 ```
 
 完整流程（导入→选题→做题→判分→仪表板统计）已经用真实PDF + 无头浏览器跑通过一次，参考对话记录里的截图。

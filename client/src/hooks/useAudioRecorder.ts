@@ -3,6 +3,7 @@ import { useCallback, useRef, useState } from 'react'
 export function useAudioRecorder() {
   const [isRecording, setIsRecording] = useState(false)
   const [error, setError] = useState('')
+  const [stream, setStream] = useState<MediaStream | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const streamRef = useRef<MediaStream | null>(null)
@@ -10,10 +11,11 @@ export function useAudioRecorder() {
   const start = useCallback(async () => {
     setError('')
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      streamRef.current = stream
+      const s = await navigator.mediaDevices.getUserMedia({ audio: true })
+      streamRef.current = s
+      setStream(s)
       chunksRef.current = []
-      const recorder = new MediaRecorder(stream)
+      const recorder = new MediaRecorder(s)
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data)
       }
@@ -32,6 +34,7 @@ export function useAudioRecorder() {
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
         streamRef.current?.getTracks().forEach((t) => t.stop())
+        setStream(null)
         setIsRecording(false)
         resolve(blob)
       }
@@ -39,5 +42,5 @@ export function useAudioRecorder() {
     })
   }, [])
 
-  return { start, stop, isRecording, error }
+  return { start, stop, isRecording, error, stream }
 }

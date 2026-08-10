@@ -1,5 +1,5 @@
 @echo off
-REM 雅思全科练习系统 - 一键安装/启动（Windows）
+REM G2Band - 一键安装/启动（Windows）
 REM 注意：这个脚本只在 macOS 上写好、没有在真实 Windows 机器上跑过测试。
 REM whisper.cpp 在 Windows 上的编译方式（需要 Visual Studio Build Tools 或 MinGW）跟 macOS
 REM 完全不同，这里不做自动编译，只检测 + 提示，写作模块不受影响，口语模块的本地转录功能
@@ -9,7 +9,7 @@ setlocal enabledelayedexpansion
 cd /d "%~dp0"
 
 echo ==================================
-echo  雅思全科练习系统 - 安装/启动
+echo  G2Band - 安装/启动
 echo ==================================
 
 echo.

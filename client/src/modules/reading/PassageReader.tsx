@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import FloatingToast from '@/components/FloatingToast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { listPassages, listVocab, addVocab, type PassageItem, type VocabEntry } from '@/lib/api'
 
@@ -68,19 +69,26 @@ export default function PassageReader() {
   }
 
   const markAsVocab = async () => {
-    if (!popup || !selected) return
+    if (!popup || !selected || busy) return
+    const { word, context } = popup
+    // 立即关闭 popup，避免等待 AI 期间用户再次点击同一个词
+    setPopup(null)
+    window.getSelection()?.removeAllRanges()
     setBusy(true)
+    setToast(`正在查询 "${word}"…`)
     try {
-      const entry = await addVocab({ word: popup.word, contextSentence: popup.context, sourceItemId: selected.id })
-      setVocab((prev) => [entry, ...prev])
-      setToast(`已加入词汇库：${popup.word}`)
-      setTimeout(() => setToast(''), 2000)
+      const entry = await addVocab({ word, contextSentence: context, sourceItemId: selected.id })
+      if (entry.alreadyExists) {
+        setToast(`"${word}" 已在词库中`)
+      } else {
+        setVocab((prev) => [entry, ...prev])
+        setToast(`已加入词汇库：${word}`)
+      }
+      setTimeout(() => setToast(''), 2500)
     } catch (e) {
       setToast((e as Error).message)
     } finally {
       setBusy(false)
-      setPopup(null)
-      window.getSelection()?.removeAllRanges()
     }
   }
 
@@ -155,9 +163,7 @@ export default function PassageReader() {
       )}
 
       {toast && (
-        <div className="fixed bottom-6 right-6 bg-foreground text-background text-sm px-4 py-2 rounded-md shadow-lg">
-          {toast}
-        </div>
+        <FloatingToast message={toast} />
       )}
     </div>
   )

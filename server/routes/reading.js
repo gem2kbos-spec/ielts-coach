@@ -3,7 +3,8 @@ const path = require('path');
 const os = require('os');
 const express = require('express');
 const multer = require('multer');
-const { listItems, getItem, upsertItem } = require('../db/itemsRepo');
+const { listItems, getItem, upsertItem, deleteItem, restoreItem, listDeletedItems } = require('../db/itemsRepo');
+const { getDb } = require('../db/client');
 const { createAttempt, getLatestAttemptForItem } = require('../db/attemptsRepo');
 const { listVocab } = require('../db/vocabRepo');
 const { extractPdfPages } = require('../services/pdf');
@@ -19,7 +20,7 @@ const USER_IMPORTS_DIR = path.join(__dirname, '..', '..', 'data', 'user-imports'
 const upload = multer({ dest: os.tmpdir() });
 const router = express.Router();
 
-async function suggestAnswers(passage) {
+async function suggestAnswers(passage, userId) {
   if (passage.questions.length === 0) return passage;
   try {
     const { data } = await askForJson({
@@ -27,6 +28,7 @@ async function suggestAnswers(passage) {
       prompt: buildAnswerKeyPrompt({ title: passage.title, passageText: passage.passageText, questions: passage.questions }),
       timeoutMs: 60_000,
       retries: 1,
+      userId,
     });
     const byNumber = new Map(data.answers.map((a) => [a.number, a]));
     return {
@@ -56,7 +58,7 @@ router.post('/parse-pdf', upload.single('file'), async (req, res) => {
 
     const fullText = pages.join('\n\n');
     const parsed = parseReadingDocument(fullText);
-    const passagesWithAnswers = await Promise.all(parsed.passages.map(suggestAnswers));
+    const passagesWithAnswers = await Promise.all(parsed.passages.map((p) => suggestAnswers(p, req.userId)));
 
     const previewId = createPreview({ pages, originalFilePath: destPath });
     res.json({ previewId, confidence: parsed.confidence, passages: passagesWithAnswers, pageCount: pages.length });
@@ -80,7 +82,7 @@ router.post('/parse-pdf/manual-range', async (req, res) => {
         const questions = subParsed[0]?.questions || [];
         const passageText = subParsed[0]?.passageText || slice;
         const base = { title: r.title || `第${i + 1}篇`, passageText, questions };
-        return suggestAnswers(base);
+        return suggestAnswers(base, req.userId);
       })
     );
     res.json({ passages });
@@ -110,6 +112,7 @@ router.post('/import', (req, res) => {
           questions: p.questions.map((q) => ({
             number: q.number,
             type: q.type,
+            instructions: q.instructions || null,
             prompt: q.prompt,
             options: q.options,
             correct_answer: q.correct_answer,
@@ -128,8 +131,8 @@ router.post('/import', (req, res) => {
 router.post('/generate/preview', async (req, res) => {
   const { difficulty, topic, questionTypes, extraRequirements } = req.body;
   try {
-    const weakTypes = questionTypes?.length ? [] : getWeakQuestionTypes();
-    const reinforcementWords = listVocab({ needsReinforcement: true })
+    const weakTypes = questionTypes?.length ? [] : getWeakQuestionTypes(req.userId);
+    const reinforcementWords = listVocab({ userId: req.userId, needsReinforcement: true })
       .slice(0, 8)
       .map((v) => v.word);
 
@@ -141,7 +144,7 @@ router.post('/generate/preview', async (req, res) => {
       weakTypes,
       reinforcementWords,
     });
-    const { data, costUsd } = await askForJson({ feature: 'reading_generate', prompt, timeoutMs: 90_000, retries: 1 });
+    const { data, costUsd } = await askForJson({ feature: 'reading_generate', prompt, timeoutMs: 90_000, retries: 1, userId: req.userId });
 
     const passageText = data.passage_paragraphs.map((p) => `${p.letter}  ${p.text}`).join('\n\n');
     const draft = {
@@ -163,13 +166,14 @@ router.post('/generate/preview', async (req, res) => {
 router.get('/passages', (req, res) => {
   const items = listItems({ module: 'reading', subtype: 'passage_with_questions' });
   const enriched = items.map((item) => {
-    const attempt = getLatestAttemptForItem(item.id);
+    const attempt = getLatestAttemptForItem(item.id, req.userId);
     return {
       id: item.id,
       title: item.content.title,
       questionCount: item.content.questions.length,
       completed: !!attempt,
       lastAccuracy: attempt?.score?.accuracy ?? null,
+      lastCorrectCount: attempt?.score?.correctCount ?? null,
       difficulty: item.difficulty,
       source: item.source,
       topicTag: item.tags?.[0] || null,
@@ -177,6 +181,44 @@ router.get('/passages', (req, res) => {
     };
   });
   res.json(enriched);
+});
+
+router.get('/passages/deleted', (req, res) => {
+  const items = listDeletedItems({ module: 'reading' });
+  const enriched = items
+    .filter((item) => item.subtype === 'passage_with_questions')
+    .map((item) => {
+      const attempts = getDb()
+        .prepare('SELECT id, created_at, score FROM attempts WHERE item_id = ? AND user_id = ? ORDER BY created_at DESC')
+        .all(item.id, req.userId);
+      return {
+        id: item.id,
+        title: item.content.title,
+        questionCount: item.content.questions?.length ?? 0,
+        difficulty: item.difficulty,
+        source: item.source,
+        deletedAt: item.deleted_at,
+        attempts: attempts.map((a) => {
+          const score = JSON.parse(a.score || 'null');
+          return { id: a.id, createdAt: a.created_at, correctCount: score?.correctCount ?? null, total: score?.total ?? null, accuracy: score?.accuracy ?? null };
+        }),
+      };
+    });
+  res.json(enriched);
+});
+
+router.post('/passages/:id/restore', (req, res) => {
+  const item = getItem(req.params.id) || listDeletedItems({ module: 'reading' }).find((i) => i.id === req.params.id);
+  if (!item || item.module !== 'reading') return res.status(404).json({ error: 'not found' });
+  restoreItem(req.params.id);
+  res.json({ ok: true });
+});
+
+router.delete('/passages/:id', (req, res) => {
+  const item = getItem(req.params.id);
+  if (!item || item.module !== 'reading') return res.status(404).json({ error: 'not found' });
+  deleteItem(req.params.id);
+  res.json({ ok: true });
 });
 
 router.get('/passages/:id', (req, res) => {
@@ -196,14 +238,16 @@ router.get('/passages/:id', (req, res) => {
 });
 
 router.post('/passages/:id/submit', async (req, res) => {
-  const { answers, durationSec } = req.body; // answers: [{ number, userAnswer }]
+  const { answers, durationSec, onTime, overtimeSeconds, questionNumbers } = req.body; // answers: [{ number, userAnswer }]
   const item = getItem(req.params.id);
   if (!item || item.module !== 'reading' || item.subtype !== 'passage_with_questions') {
     return res.status(404).json({ error: 'not found' });
   }
 
+  const allowed = Array.isArray(questionNumbers) && questionNumbers.length > 0 ? new Set(questionNumbers.map(Number)) : null;
+  const sourceQuestions = allowed ? item.content.questions.filter((q) => allowed.has(Number(q.number))) : item.content.questions;
   const userAnswerByNumber = new Map((answers || []).map((a) => [a.number, a.userAnswer]));
-  const perQuestion = item.content.questions.map((q) => {
+  const perQuestion = sourceQuestions.map((q) => {
     const userAnswer = userAnswerByNumber.get(q.number) ?? '';
     const correct = normalizeAnswer(userAnswer) === normalizeAnswer(q.correct_answer);
     return {
@@ -236,6 +280,7 @@ router.post('/passages/:id/submit', async (req, res) => {
         }),
         timeoutMs: 60_000,
         retries: 1,
+        userId: req.userId,
       });
       errorTags = data.tags || [];
       perQuestionTags = data.per_question || [];
@@ -246,11 +291,12 @@ router.post('/passages/:id/submit', async (req, res) => {
   }
 
   const attempt = createAttempt({
+    userId: req.userId,
     module: 'reading',
     itemId: item.id,
     durationSec,
-    rawResponse: { answers },
-    score: { accuracy, correctCount, total, perQuestion },
+    rawResponse: { answers, questionNumbers: questionNumbers || null },
+    score: { accuracy, correctCount, total, perQuestion, onTime: onTime ?? true, overtimeSeconds: overtimeSeconds ?? 0 },
     bandOverall: null,
     errorTags,
   });

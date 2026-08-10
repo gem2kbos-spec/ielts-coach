@@ -14,18 +14,37 @@ const vocabRouter = require('./routes/vocab');
 const readingRouter = require('./routes/reading');
 const listeningRouter = require('./routes/listening');
 const backupRouter = require('./routes/backup');
+const historyRouter = require('./routes/history');
+const weaknessRouter = require('./routes/weakness');
+const expressionsRouter = require('./routes/expressions');
+const authRouter = require('./routes/auth');
+const { requireAuth } = require('./middleware/auth');
 const { examLockMiddleware } = require('./services/examTimer');
 
 const app = express();
+app.set('etag', false); // 接口是按用户走的动态JSON，不该被Express自带的ETag/304缓存逻辑拦下来返回空body
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
-app.use(examLockMiddleware);
+if (process.env.DEBUG_REQUESTS === '1') {
+  app.use((req, res, next) => {
+    const t0 = Date.now();
+    console.log(`[req] ${req.method} ${req.path}`);
+    res.on('finish', () => console.log(`[res] ${req.method} ${req.path} -> ${res.statusCode} (${Date.now() - t0}ms)`));
+    next();
+  });
+}
 
 app.get('/api/health', (req, res) => {
   const db = getDb();
   const row = db.prepare('SELECT 1 as ok').get();
-  res.json({ ok: row.ok === 1, time: new Date().toISOString() });
+  res.json({ app: 'ielts-coach', ok: row.ok === 1, time: new Date().toISOString() });
 });
+
+// /api/auth(注册/登录)本身不需要登录态；这一行之后的所有/api/*路由都要求带合法JWT，
+// 校验通过后request上会带req.userId，下游路由/examLockMiddleware按这个做用户级数据隔离/锁定。
+app.use('/api/auth', authRouter);
+app.use('/api', requireAuth);
+app.use(examLockMiddleware);
 
 app.use('/api/items', itemsRouter);
 app.use('/api/writing', writingRouter);
@@ -36,6 +55,9 @@ app.use('/api/vocab', vocabRouter);
 app.use('/api/reading', readingRouter);
 app.use('/api/listening', listeningRouter);
 app.use('/api/backup', backupRouter);
+app.use('/api/history', historyRouter);
+app.use('/api/weakness', weaknessRouter);
+app.use('/api/expressions', expressionsRouter);
 
 const clientDist = path.join(__dirname, '..', 'client', 'dist');
 if (fs.existsSync(clientDist)) {

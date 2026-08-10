@@ -11,7 +11,7 @@ allowed-tools:
 三种获取文章的方式 + 共用的做题/判分体验。
 
 ## 1. PDF导入真题
-1. 跑 `bash ~/ielts-coach/skills/_shared/ensure-server.sh` 拿到 `READY <base_url>`。
+1. 跑 `bash ~/ielts-coach/skills/_shared/ensure-server.sh` 拿到 `READY <base_url>` 和 `TOKEN <token>`（下面直接curl接口都要带 `-H "Authorization: Bearer $TOKEN"`，开浏览器走用户自己的登录session不需要）。
 2. `open <base_url>/reading/import`，拖一份含多篇阅读理解(文章+题目)的PDF进去。自动按"PASSAGE/Questions/题号/选项字母"切分+AI建议答案，置信度低时可手动按页码范围切分，预览确认后入库。
 
 ## 2. AI 生成新文章（用户说"帮我生成一篇阅读"之类的话时用这个）
@@ -20,7 +20,7 @@ allowed-tools:
 
 ```bash
 curl -s -X POST http://localhost:3000/api/reading/generate/preview \
-  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"difficulty": "medium", "topic": "气候变化", "questionTypes": [], "extraRequirements": ""}' \
   -o /tmp/ielts-reading-draft.json
 ```
@@ -31,7 +31,7 @@ curl -s -X POST http://localhost:3000/api/reading/generate/preview \
 - 用户确认要这篇之后才入库：
 ```bash
 node -e "const d=JSON.parse(require('fs').readFileSync('/tmp/ielts-reading-draft.json')); console.log(JSON.stringify({passages:[d.draft]}))" > /tmp/ielts-reading-import-body.json
-curl -s -X POST http://localhost:3000/api/reading/import -d @/tmp/ielts-reading-import-body.json -H "Content-Type: application/json"
+curl -s -X POST http://localhost:3000/api/reading/import -d @/tmp/ielts-reading-import-body.json -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json"
 ```
 - 用户说"不满意/重新生成"就把同样的参数再调一次`/generate/preview`（保留上次的difficulty/topic/questionTypes/extraRequirements，不用重新问用户）。
 - 入库后告诉用户可以去 `<base_url>/reading` 选题页找到这篇（带"AI生成"标签），或者直接 `open <base_url>/reading` 给他们看。

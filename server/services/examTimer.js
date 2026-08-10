@@ -1,6 +1,6 @@
 const { getActiveLock } = require('../db/examSessionsRepo');
 
-const ALWAYS_ALLOWED_PREFIXES = ['/api/health', '/api/exam-sessions', '/api/dashboard', '/api/backup'];
+const ALWAYS_ALLOWED_PREFIXES = ['/api/health', '/api/exam-sessions', '/api/dashboard', '/api/backup', '/api/history', '/api/weakness'];
 
 // 完整模考(mock_full)：放行的模块跟着当前关卡动态变化——
 // 走到"阅读"关时阅读模块要放开，否则用户没法在锁定窗口里实际做阅读。
@@ -15,7 +15,7 @@ const STAGE_ALLOWED_PREFIXES = {
 
 function examLockMiddleware(req, res, next) {
   if (!req.path.startsWith('/api/')) return next();
-  const lock = getActiveLock();
+  const lock = getActiveLock(req.userId);
   if (!lock) return next();
 
   if (ALWAYS_ALLOWED_PREFIXES.some((p) => req.path.startsWith(p))) return next();

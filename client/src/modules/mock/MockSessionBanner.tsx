@@ -8,9 +8,10 @@ export default function MockSessionBanner() {
   const sessionId = params.get('mockSession')
   if (!sessionId) return null
   return (
-    <div className="mb-3 text-sm">
-      <Link to={`/mock/run/${sessionId}`} className="inline-flex items-center gap-1 text-primary hover:underline">
-        ⬅ 这一关做完了？点这里返回模考
+    <div className="mb-4 rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary shadow-[0_10px_30px_rgba(59,130,246,0.08)]">
+      <Link to={`/mock/run/${sessionId}`} className="inline-flex items-center gap-2 font-medium hover:underline">
+        <span>←</span>
+        <span>这一关做完了？点这里返回模考</span>
       </Link>
     </div>
   )

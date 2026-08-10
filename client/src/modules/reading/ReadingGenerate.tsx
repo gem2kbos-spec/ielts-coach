@@ -3,12 +3,16 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input, Textarea } from '@/components/ui/input'
 import {
   generateReadingPreview,
   importReadingPassages,
   type ReadingGenerateParams,
   type ReadingPassageDraft,
 } from '@/lib/api'
+import { useDraftAutosave } from '@/hooks/useDraftAutosave'
+import DraftStatus from '@/components/DraftStatus'
+import { Bot, BookOpen, ListChecks, Sparkles } from 'lucide-react'
 
 const DIFFICULTY_OPTIONS: { key: 'easy' | 'medium' | 'hard'; label: string; hint: string }[] = [
   { key: 'easy', label: '简单', hint: 'band 5-6，词汇基础，逻辑直接' },
@@ -38,6 +42,18 @@ export default function ReadingGenerate() {
   const [draft, setDraft] = useState<ReadingPassageDraft | null>(null)
   const [meta, setMeta] = useState<{ weakTypesUsed: string[]; reinforcementWordsUsed: string[] } | null>(null)
   const [error, setError] = useState('')
+  const autosave = useDraftAutosave({
+    storageKey: 'draft:reading-generate',
+    value: { difficulty, topic, types, extra },
+    enabled: !draft,
+    restoreMode: 'manual',
+    onLoad: (saved: { difficulty: 'easy' | 'medium' | 'hard' | ''; topic: string; types: string[]; extra: string }) => {
+      setDifficulty(saved.difficulty || '')
+      setTopic(saved.topic || '')
+      setTypes(saved.types || [])
+      setExtra(saved.extra || '')
+    },
+  })
 
   const toggleType = (key: string) => {
     setTypes((prev) => (prev.includes(key) ? prev.filter((t) => t !== key) : [...prev, key]))
@@ -69,6 +85,7 @@ export default function ReadingGenerate() {
     setError('')
     try {
       await importReadingPassages([draft])
+      autosave.clear()
       navigate('/reading')
     } catch (e) {
       setError((e as Error).message)
@@ -78,15 +95,62 @@ export default function ReadingGenerate() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-8 space-y-4">
-      <Link to="/reading" className="text-sm text-muted-foreground hover:underline">
-        ← 返回阅读菜单
-      </Link>
-      <h1 className="text-2xl font-semibold">AI 生成阅读文章</h1>
+    <div className="mx-auto max-w-5xl space-y-5 px-5 py-8 sm:px-6 lg:px-8">
+      <div className="flex items-center justify-between lg:pr-44">
+        <Link to="/reading" className="text-sm text-muted-foreground hover:underline">
+          ← 返回阅读题库
+        </Link>
+        {!draft && (
+          <div className="flex justify-end gap-2">
+            {autosave.hasSavedDraft && (
+              <Button variant="outline" size="sm" onClick={autosave.restore}>
+                恢复上次参数
+              </Button>
+            )}
+            <DraftStatus status={autosave.status} onClear={autosave.hasSavedDraft ? autosave.clear : undefined} compact />
+          </div>
+        )}
+      </div>
+
+      <Card className="overflow-hidden rounded-[28px] border-border/70 bg-card/85 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+        <CardContent className="grid gap-5 p-6 sm:p-7 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/55 px-3 py-1 text-xs text-muted-foreground backdrop-blur-xl">
+              <Bot className="h-3.5 w-3.5 text-primary" />
+              Reading Generator
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-3xl font-semibold tracking-tight">AI 生成阅读文章</h1>
+              <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+                输入主题、题型和难度，先预览文章和题目，再决定是否存入题库。
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            {[
+              { icon: BookOpen, label: '文章', value: draft ? '已生成' : '待生成', desc: '生成完整 passage 与题目' },
+              { icon: ListChecks, label: '题型', value: types.length ? String(types.length) : '自动', desc: '可手动指定或按弱项分配' },
+              { icon: Sparkles, label: '模式', value: '先预览', desc: '确认后再写入题库' },
+            ].map((stat) => {
+              const Icon = stat.icon
+              return (
+                <div key={stat.label} className="rounded-2xl border border-border/70 bg-background/48 p-4 backdrop-blur-xl">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-border/70 bg-card/55 text-primary">
+                    <Icon className="h-4.5 w-4.5" />
+                  </div>
+                  <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{stat.label}</div>
+                  <div className="mt-3 text-xl font-semibold">{stat.value}</div>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{stat.desc}</p>
+                </div>
+              )
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {!draft && (
-        <Card>
-          <CardContent className="pt-6 space-y-5">
+        <Card className="rounded-[28px]">
+          <CardContent className="space-y-5 p-6 sm:p-7">
             <div>
               <p className="text-sm font-medium mb-2">难度（留空自动决定）</p>
               <div className="flex gap-2">
@@ -107,11 +171,10 @@ export default function ReadingGenerate() {
 
             <div>
               <p className="text-sm font-medium mb-2">主题关键词（留空随机选题）</p>
-              <input
+              <Input
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder="例如：人工智能 / 气候变化 / 古罗马建筑"
-                className="w-full rounded-md border border-border bg-transparent px-3 py-1.5 text-sm"
               />
             </div>
 
@@ -133,11 +196,11 @@ export default function ReadingGenerate() {
 
             <div>
               <p className="text-sm font-medium mb-2">附加要求（自由输入，留空不附加）</p>
-              <textarea
+              <Textarea
                 value={extra}
                 onChange={(e) => setExtra(e.target.value)}
                 placeholder="例如：多出现学术词汇 / 句子不要太长 / 多考推断题"
-                className="w-full min-h-[60px] rounded-md border border-border bg-transparent px-3 py-1.5 text-sm"
+                className="min-h-[86px]"
               />
             </div>
 
@@ -183,6 +246,7 @@ export default function ReadingGenerate() {
                     <Badge variant="outline">Q{q.number}</Badge>
                     <Badge variant="secondary">{q.type}</Badge>
                   </div>
+                  {q.instructions && <p className="mb-1 text-xs leading-5 text-muted-foreground">{q.instructions}</p>}
                   <p className="text-sm">{q.prompt}</p>
                   {q.options && <p className="text-xs text-muted-foreground mt-1">{q.options.join(' | ')}</p>}
                   <p className="text-xs mt-1">

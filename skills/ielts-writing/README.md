@@ -5,12 +5,12 @@
 ## 独立测试
 
 ```bash
-bash ~/ielts-coach/skills/_shared/ensure-server.sh
+bash ~/ielts-coach/skills/_shared/ensure-server.sh   # 输出里的TOKEN行就是下面$TOKEN的值
 open http://localhost:5173/writing/task2
 
-# 或直接调接口：
-curl -s http://localhost:3000/api/writing/task2/random
+# 或直接调接口（接口都要登录，带上Authorization header）：
+curl -s -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/writing/task2/random
 curl -s -X POST http://localhost:3000/api/writing/task2/grade \
-  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"itemId": "<上面拿到的id>", "essayText": "至少50词的文章...", "durationSec": 1800}'
 ```

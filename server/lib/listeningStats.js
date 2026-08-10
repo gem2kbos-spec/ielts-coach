@@ -1,15 +1,15 @@
 const { getDb } = require('../db/client');
 
 // 按section(S1-S4)聚合听力正确率——诊断skill用这个回答"我听力哪个section最差"这类问题。
-function getAccuracyBySection() {
+function getAccuracyBySection(userId) {
   const db = getDb();
   const rows = db
     .prepare(
       `SELECT a.score, i.content FROM attempts a
        JOIN items i ON a.item_id = i.id
-       WHERE a.module = 'listening'`
+       WHERE a.module = 'listening' AND a.user_id = ?`
     )
-    .all();
+    .all(userId);
 
   const bySection = {};
   for (const row of rows) {

@@ -14,9 +14,11 @@ function answerMatches(userAnswer, correctAnswer) {
   return normalizeAnswer(userAnswer) === normalizeAnswer(correctAnswer);
 }
 
-function gradeSection(item, answers) {
+function gradeSection(item, answers, questionNumbers) {
   const userAnswerByNumber = new Map((answers || []).map((a) => [a.number, a.userAnswer]));
-  const perQuestion = item.content.questions.map((q) => {
+  const allowed = Array.isArray(questionNumbers) && questionNumbers.length > 0 ? new Set(questionNumbers.map(Number)) : null;
+  const sourceQuestions = allowed ? item.content.questions.filter((q) => allowed.has(Number(q.number))) : item.content.questions;
+  const perQuestion = sourceQuestions.map((q) => {
     const userAnswer = userAnswerByNumber.get(q.number) ?? (q.type === 'multiple_select' ? [] : '');
     return {
       number: q.number,

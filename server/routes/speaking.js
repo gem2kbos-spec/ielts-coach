@@ -73,7 +73,7 @@ router.post('/part1/submit', upload.single('audio'), async (req, res) => {
       speakSec,
     });
 
-    const { data, costUsd } = await askForJson({ feature: 'speaking_part1_score', prompt, timeoutMs: 120_000, retries: 1 });
+    const { data, costUsd } = await askForJson({ feature: 'speaking_part1_score', prompt, timeoutMs: 120_000, retries: 1, userId: req.userId });
     const errorTags = inferSpeakingTags({
       scores: data.scores,
       fillerTotal: fillerStats.total,
@@ -82,12 +82,13 @@ router.post('/part1/submit', upload.single('audio'), async (req, res) => {
     });
 
     const attempt = createAttempt({
+      userId: req.userId,
       module: 'speaking',
       itemId,
       durationSec: Number(speakSec) || null,
       audioPath,
       transcript: transcriptText,
-      rawResponse: { fillerStats, riskSummary },
+      rawResponse: { fillerStats, riskSummary, riskFlagged: flagged.filter((f) => f.suspicion === 'watch').slice(0, 30) },
       score: data,
       bandOverall: data.band_overall,
       errorTags,
@@ -148,7 +149,7 @@ router.post('/part2/submit', upload.single('audio'), async (req, res) => {
       speakSec,
     });
 
-    const { data, costUsd } = await askForJson({ feature: 'speaking_part2_score', prompt, timeoutMs: 120_000, retries: 1 });
+    const { data, costUsd } = await askForJson({ feature: 'speaking_part2_score', prompt, timeoutMs: 120_000, retries: 1, userId: req.userId });
     const errorTags = inferSpeakingTags({
       scores: data.scores,
       fillerTotal: fillerStats.total,
@@ -157,12 +158,13 @@ router.post('/part2/submit', upload.single('audio'), async (req, res) => {
     });
 
     const attempt = createAttempt({
+      userId: req.userId,
       module: 'speaking',
       itemId,
       durationSec: Number(speakSec) || null,
       audioPath,
       transcript: transcriptText,
-      rawResponse: { fillerStats, riskSummary },
+      rawResponse: { fillerStats, riskSummary, riskFlagged: flagged.filter((f) => f.suspicion === 'watch').slice(0, 30) },
       score: data,
       bandOverall: data.band_overall,
       errorTags,
@@ -309,10 +311,11 @@ router.post('/examiner/turn', upload.single('audio'), async (req, res) => {
 
     if (turnIndex >= MAX_TURNS) {
       const prompt = buildExaminerFeedbackPrompt({ topic: session.topic, history });
-      const { data, costUsd } = await askForJson({ feature: 'speaking_examiner_feedback', prompt, timeoutMs: 120_000, retries: 1 });
+      const { data, costUsd } = await askForJson({ feature: 'speaking_examiner_feedback', prompt, timeoutMs: 120_000, retries: 1, userId: req.userId });
       const errorTags = inferSpeakingTags({ scores: data.scores, fillerTotal: 0, durationSec: 0, expectedSec: 0 });
 
       const attempt = createAttempt({
+        userId: req.userId,
         module: 'speaking',
         durationSec: null,
         transcript: history.map((h) => `Q: ${h.question}\nA: ${h.answer}`).join('\n\n'),
@@ -327,7 +330,7 @@ router.post('/examiner/turn', upload.single('audio'), async (req, res) => {
     }
 
     const followUpPrompt = buildExaminerFollowUpPrompt({ topic: session.topic, ideaBank: session.ideaBank, history });
-    const { data: followUp, costUsd } = await askForJson({ feature: 'speaking_examiner_followup', prompt: followUpPrompt, timeoutMs: 60_000, retries: 1 });
+    const { data: followUp, costUsd } = await askForJson({ feature: 'speaking_examiner_followup', prompt: followUpPrompt, timeoutMs: 60_000, retries: 1, userId: req.userId });
     const ttsPath = await speak(followUp.question);
 
     updateSession(sessionId, { history, turnIndex, pendingQuestion: followUp.question });
@@ -367,6 +370,7 @@ router.post('/full/finish', (req, res) => {
   const bandOverall = Math.round((sections.reduce((a, s) => a + s.band_overall, 0) / sections.length) * 2) / 2;
 
   const attempt = createAttempt({
+    userId: req.userId,
     module: 'speaking',
     durationSec: null,
     rawResponse: { part1, part2, part3, combined: true },

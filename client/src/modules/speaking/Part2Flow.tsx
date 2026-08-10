@@ -1,12 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Clock3, Mic, Sparkles } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useExamTimer, type ExamPhase } from '@/hooks/useExamTimer'
 import { useAudioRecorder } from '@/hooks/useAudioRecorder'
-import { getRandomPart2, submitPart2, type SpeakingPart2Item } from '@/lib/api'
+import { getRandomPart2, submitPart2, type SpeakingPart2Item, type SpeakingScoreResult } from '@/lib/api'
 import MockSessionBanner from '@/modules/mock/MockSessionBanner'
+import Waveform from '@/components/Waveform'
+import ScoreRadarChart from '@/components/ScoreRadarChart'
+import ComparisonCard from '@/modules/history/ComparisonCard'
+import { useAttemptComparison } from '@/modules/history/useAttemptComparison'
+import { cn } from '@/lib/utils'
 
 const PHASES: ExamPhase[] = [
   { key: 'prep', label: '准备', seconds: 60 },
@@ -24,12 +30,13 @@ type Stage = 'idle' | 'running' | 'processing' | 'result'
 export default function Part2Flow() {
   const [item, setItem] = useState<SpeakingPart2Item | null>(null)
   const [stage, setStage] = useState<Stage>('idle')
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<SpeakingScoreResult | null>(null)
   const [error, setError] = useState('')
   const timer = useExamTimer(PHASES)
   const recorder = useAudioRecorder()
   const speakStartedAt = useRef(0)
   const prevPhaseIndex = useRef(0)
+  const comparison = useAttemptComparison(result?.attemptId)
 
   const loadNewPrompt = () => {
     setItem(null)
@@ -96,7 +103,7 @@ export default function Part2Flow() {
 
   if (stage === 'result' && result) {
     return (
-      <div className="max-w-3xl mx-auto p-8 space-y-6">
+      <div className="mx-auto max-w-5xl space-y-5 px-5 pb-8 pt-14 sm:px-6 lg:px-8">
         <MockSessionBanner />
         <div className="flex items-center justify-between">
           <Link to="/" className="text-sm text-muted-foreground hover:underline">
@@ -107,14 +114,34 @@ export default function Part2Flow() {
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <span>总分 Band {result.band_overall}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {comparison && <ComparisonCard previous={comparison.previous} delta={comparison.delta} />}
+
+        <Card className="overflow-hidden rounded-[28px] border-border/70 bg-card/85 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+          <CardContent className="grid gap-5 p-6 sm:p-7 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/75 px-3 py-1 text-xs text-muted-foreground">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                Speaking Part 2 Result
+              </div>
+              <div className="space-y-2">
+                <h1 className="text-3xl font-semibold tracking-tight">Band {result.band_overall}</h1>
+                <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+                  这次是话题卡轮次的综合表现，包含填充词、转写和四项打分。
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              {(['fc', 'lr', 'gra', 'pron'] as const).map((k) => (
+                <div key={k} className="rounded-2xl border border-border/70 bg-background/75 p-4">
+                  <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{{ fc: 'FC 流利度', lr: 'LR 词汇', gra: 'GRA 语法', pron: 'PRON 发音' }[k]}</div>
+                  <div className="mt-3 text-xl font-semibold">{result.scores[k]}</div>
+                  <p className="mt-2 text-xs leading-6 text-muted-foreground">{result.comments[k]}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+          <CardContent className="grid md:grid-cols-2 gap-4 items-center pt-0">
+            <div className="grid grid-cols-2 gap-4">
               {(['fc', 'lr', 'gra', 'pron'] as const).map((k) => (
                 <div key={k}>
                   <div className="text-sm text-muted-foreground">{{ fc: 'FC 流利度', lr: 'LR 词汇', gra: 'GRA 语法', pron: 'PRON 发音' }[k]}</div>
@@ -123,10 +150,11 @@ export default function Part2Flow() {
                 </div>
               ))}
             </div>
+            <ScoreRadarChart scores={result.scores} labels={{ fc: 'FC', lr: 'LR', gra: 'GRA', pron: 'PRON' }} />
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-[28px] border-border/70 bg-card/85">
           <CardHeader>
             <CardTitle className="text-base">填充词 / 转写</CardTitle>
           </CardHeader>
@@ -146,7 +174,7 @@ export default function Part2Flow() {
         </Card>
 
         {result.suggestions?.length > 0 && (
-          <Card>
+          <Card className="rounded-[28px] border-border/70 bg-card/85">
             <CardHeader>
               <CardTitle className="text-base">改进建议</CardTitle>
             </CardHeader>
@@ -164,14 +192,48 @@ export default function Part2Flow() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-8">
+    <div className="mx-auto max-w-5xl space-y-5 px-5 pb-8 pt-14 sm:px-6 lg:px-8">
       <MockSessionBanner />
       <Link to="/" className="text-sm text-muted-foreground hover:underline">
         ← 返回首页
       </Link>
-      <h1 className="text-2xl font-semibold mt-4 mb-4">口语 Part 2</h1>
+      <Card className="overflow-hidden rounded-[28px] border-border/70 bg-card/85 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+        <CardContent className="grid gap-5 p-6 sm:p-7 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/75 px-3 py-1 text-xs text-muted-foreground">
+              <Mic className="h-3.5 w-3.5 text-primary" />
+              Speaking Part 2
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-3xl font-semibold tracking-tight">口语 Part 2</h1>
+              <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+                先准备 1 分钟，再连续回答 2 分钟。系统会自动在进入回答阶段时开启录音。
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            {[
+              { icon: Clock3, label: '流程结构', value: '1+2 分钟', desc: '准备 1 分钟，回答 2 分钟' },
+              { icon: Sparkles, label: '当前状态', value: stage === 'running' ? timer.phase.label : stage === 'processing' ? '处理中' : '待开始', desc: stage === 'running' ? '倒计时会自动切换阶段' : stage === 'processing' ? '转写和评分生成中' : '题卡载入后即可开始' },
+              { icon: Mic, label: '录音方式', value: '自动开启', desc: '进入回答阶段后自动开始采集音频' },
+            ].map((stat) => {
+              const Icon = stat.icon
+              return (
+                <div key={stat.label} className="rounded-2xl border border-border/70 bg-background/75 p-4">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Icon className="h-4.5 w-4.5" />
+                  </div>
+                  <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{stat.label}</div>
+                  <div className="mt-3 text-xl font-semibold">{stat.value}</div>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{stat.desc}</p>
+                </div>
+              )
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
-      <Card className="mb-4">
+      <Card className="rounded-[28px] border-border/70 bg-card/85">
         <CardHeader>
           <CardTitle className="text-base">题卡</CardTitle>
         </CardHeader>
@@ -192,31 +254,38 @@ export default function Part2Flow() {
       </Card>
 
       {stage === 'idle' && (
-        <Button onClick={beginExam} disabled={!item}>
+        <Button className="rounded-2xl px-5" onClick={beginExam} disabled={!item}>
           开始（1 分钟准备 + 2 分钟回答）
         </Button>
       )}
 
       {stage === 'running' && (
-        <Card>
+        <Card className="rounded-[28px] border-border/70 bg-card/85">
           <CardContent className="flex items-center justify-between py-4">
             <div>
               <div className="text-sm text-muted-foreground">
                 {timer.phase.label}
                 {timer.phaseIndex === 1 && recorder.isRecording && (
-                  <Badge variant="destructive" className="ml-2">
+                  <Badge variant="destructive" className="ml-2 rounded-full">
                     ● 录音中
                   </Badge>
                 )}
               </div>
-              <div className="text-3xl font-mono">{formatTime(timer.remaining)}</div>
+              <div className={cn('text-3xl font-mono', timer.remaining < 300 && timer.running && 'text-destructive animate-pulse')}>
+                {formatTime(timer.remaining)}
+              </div>
             </div>
             {timer.phaseIndex === 1 && (
-              <Button variant="outline" onClick={stopEarly}>
+              <Button variant="outline" className="rounded-2xl px-5" onClick={stopEarly}>
                 提前结束
               </Button>
             )}
           </CardContent>
+          {timer.phaseIndex === 1 && recorder.isRecording && (
+            <CardContent className="pt-0">
+              <Waveform stream={recorder.stream} />
+            </CardContent>
+          )}
         </Card>
       )}
 

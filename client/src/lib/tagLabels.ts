@@ -11,4 +11,10 @@ export const TAG_LABEL: Record<string, string> = {
   logic_misread: '逻辑误解',
   time_pressure: '时间不够',
   trap_distractor: '陷阱选项',
+  grammar: '语法错误',
+  preposition: '介词错误',
+  collocation: '搭配错误',
+  spelling: '拼写错误',
+  word_choice: '用词不当',
+  sentence_pattern: '句式问题',
 }

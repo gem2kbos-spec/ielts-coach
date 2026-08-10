@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get('/summary', (req, res) => {
   const days = req.query.days ? Number(req.query.days) : 7;
-  res.json(getSummary({ days }));
+  res.json(getSummary(req.userId, { days }));
 });
 
 router.get('/usage', (req, res) => {

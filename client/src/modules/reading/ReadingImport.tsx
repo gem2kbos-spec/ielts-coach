@@ -9,6 +9,8 @@ import {
   importReadingPassages,
   type ReadingPassageDraft,
 } from '@/lib/api'
+import { useDraftAutosave } from '@/hooks/useDraftAutosave'
+import DraftStatus from '@/components/DraftStatus'
 
 type ManualRange = { title: string; startPage: number; endPage: number }
 
@@ -29,6 +31,26 @@ export default function ReadingImport() {
   const [passages, setPassages] = useState<ReadingPassageDraft[]>([])
   const [manualRanges, setManualRanges] = useState<ManualRange[]>([])
   const [showManual, setShowManual] = useState(false)
+  const autosave = useDraftAutosave({
+    storageKey: 'draft:reading-import',
+    value: { previewId, confidence, pageCount, passages, manualRanges, showManual },
+    enabled: passages.length > 0 || manualRanges.length > 0 || !!previewId,
+    onLoad: (saved: {
+      previewId: string
+      confidence: 'high' | 'low' | null
+      pageCount: number
+      passages: ReadingPassageDraft[]
+      manualRanges: ManualRange[]
+      showManual: boolean
+    }) => {
+      setPreviewId(saved.previewId || '')
+      setConfidence(saved.confidence || null)
+      setPageCount(saved.pageCount || 0)
+      setPassages(saved.passages || [])
+      setManualRanges(saved.manualRanges || [])
+      setShowManual(Boolean(saved.showManual))
+    },
+  })
 
   const handleFile = async (file: File) => {
     setParsing(true)
@@ -83,6 +105,7 @@ export default function ReadingImport() {
     setError('')
     try {
       await importReadingPassages(passages, previewId)
+      autosave.clear()
       navigate('/reading')
     } catch (e) {
       setError((e as Error).message)
@@ -96,6 +119,9 @@ export default function ReadingImport() {
       <Link to="/reading" className="text-sm text-muted-foreground hover:underline">
         ← 返回阅读菜单
       </Link>
+      <div className="flex justify-end gap-2">
+        <DraftStatus status={autosave.status} onClear={passages.length > 0 || manualRanges.length > 0 ? autosave.clear : undefined} compact />
+      </div>
       <h1 className="text-2xl font-semibold">导入 PDF 阅读题</h1>
 
       {passages.length === 0 && (

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Layers3, Mic, Trophy } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +18,10 @@ import {
   type SpeakingPart2Item,
 } from '@/lib/api'
 import MockSessionBanner from '@/modules/mock/MockSessionBanner'
+import Waveform from '@/components/Waveform'
+import { cn } from '@/lib/utils'
+import ComparisonCard from '@/modules/history/ComparisonCard'
+import { useAttemptComparison } from '@/modules/history/useAttemptComparison'
 
 const PART2_PHASES: ExamPhase[] = [
   { key: 'prep', label: '准备', seconds: 60 },
@@ -43,6 +48,7 @@ export default function SpeakingFullFlow() {
   const [part3Result, setPart3Result] = useState<SectionResult | null>(null)
   const [finalAttemptId, setFinalAttemptId] = useState('')
   const [finalBand, setFinalBand] = useState<number | null>(null)
+  const comparison = useAttemptComparison(finalAttemptId || undefined)
 
   useEffect(() => {
     if (section !== 'done' || part1Result === null) return
@@ -58,17 +64,44 @@ export default function SpeakingFullFlow() {
 
   if (section === 'done') {
     return (
-      <div className="max-w-3xl mx-auto p-8 space-y-6">
+      <div className="mx-auto max-w-5xl space-y-5 px-5 pb-8 pt-14 sm:px-6 lg:px-8">
         <Link to="/" className="text-sm text-muted-foreground hover:underline">
           ← 返回首页
         </Link>
-        <h1 className="text-2xl font-semibold">完整口语结果</h1>
-        <Card>
-          <CardHeader>
-            <CardTitle>综合 Band {finalBand ?? '计算中…'}</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            三段(Part1/2/3)各自评分后取平均，跟真实雅思口语"一个综合分"的逻辑一致，不是三个分开的分数。
+        {comparison && <ComparisonCard previous={comparison.previous} delta={comparison.delta} />}
+        <Card className="overflow-hidden rounded-[28px] border-border/70 bg-card/85 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+          <CardContent className="grid gap-5 p-6 sm:p-7 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/75 px-3 py-1 text-xs text-muted-foreground">
+                <Trophy className="h-3.5 w-3.5 text-primary" />
+                Full Speaking Result
+              </div>
+              <div className="space-y-2">
+                <h1 className="text-3xl font-semibold tracking-tight">综合 Band {finalBand ?? '计算中…'}</h1>
+                <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+                  三段分别评分后取平均，更贴近真实雅思口语最终只给一个综合分的逻辑。
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+              {[
+                { icon: Layers3, label: '完成部分', value: '3/3', desc: 'Part 1、2、3 都已完成' },
+                { icon: Mic, label: '评分方式', value: '统一汇总', desc: '不是三段并列分数，而是最终综合分' },
+                { icon: Trophy, label: '结果状态', value: finalBand == null ? '计算中' : '已生成', desc: '完整口语记录已写入历史' },
+              ].map((stat) => {
+                const Icon = stat.icon
+                return (
+                  <div key={stat.label} className="rounded-2xl border border-border/70 bg-background/75 p-4">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <Icon className="h-4.5 w-4.5" />
+                    </div>
+                    <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{stat.label}</div>
+                    <div className="mt-3 text-xl font-semibold">{stat.value}</div>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">{stat.desc}</p>
+                  </div>
+                )
+              })}
+            </div>
           </CardContent>
         </Card>
         {[
@@ -78,11 +111,11 @@ export default function SpeakingFullFlow() {
         ].map(([label, r]) => {
           const result = r as SectionResult | null
           return (
-            <Card key={label as string}>
+            <Card key={label as string} className="rounded-[28px] border-border/70 bg-card/85 shadow-[0_18px_40px_rgba(15,23,42,0.04)]">
               <CardHeader>
                 <CardTitle className="text-base flex items-center justify-between">
                   <span>{label as string}</span>
-                  <Badge>Band {result?.band_overall ?? '-'}</Badge>
+                  <Badge className="rounded-full">Band {result?.band_overall ?? '-'}</Badge>
                 </CardTitle>
               </CardHeader>
               {result && (
@@ -105,21 +138,55 @@ export default function SpeakingFullFlow() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-8 space-y-4">
+    <div className="mx-auto max-w-5xl space-y-5 px-5 pb-8 pt-14 sm:px-6 lg:px-8">
       <MockSessionBanner />
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <Link to="/" className="text-sm text-muted-foreground hover:underline">
           ← 返回首页
         </Link>
         <div className="flex gap-2">
           {(['part1', 'part2', 'part3'] as const).map((s) => (
-            <Badge key={s} variant={s === section ? 'default' : 'outline'}>
+            <Badge key={s} variant={s === section ? 'default' : 'outline'} className="rounded-full">
               {{ part1: 'Part1', part2: 'Part2', part3: 'Part3' }[s]}
             </Badge>
           ))}
         </div>
       </div>
-      <h1 className="text-2xl font-semibold">完整口语（Part1 → Part2 → Part3）</h1>
+      <Card className="overflow-hidden rounded-[28px] border-border/70 bg-card/85 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+        <CardContent className="grid gap-5 p-6 sm:p-7 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/75 px-3 py-1 text-xs text-muted-foreground">
+              <Layers3 className="h-3.5 w-3.5 text-primary" />
+              Full Speaking Flow
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-3xl font-semibold tracking-tight">完整口语（Part 1 → Part 2 → Part 3）</h1>
+              <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+                把整场口语练习连成一条完整流程。当前阶段会在顶部高亮，完成后自动推进。
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            {[
+              { icon: Layers3, label: '流程长度', value: '3 段', desc: '热身、话题卡、深入追问连续完成' },
+              { icon: Mic, label: '当前阶段', value: { part1: 'Part 1', part2: 'Part 2', part3: 'Part 3', done: '完成' }[section], desc: '上方标签会同步显示进度' },
+              { icon: Trophy, label: '最终产出', value: '综合记录', desc: '全部完成后写入一条完整口语结果' },
+            ].map((stat) => {
+              const Icon = stat.icon
+              return (
+                <div key={stat.label} className="rounded-2xl border border-border/70 bg-background/75 p-4">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Icon className="h-4.5 w-4.5" />
+                  </div>
+                  <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{stat.label}</div>
+                  <div className="mt-3 text-xl font-semibold">{stat.value}</div>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{stat.desc}</p>
+                </div>
+              )
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {section === 'part1' && (
         <Part1Section
@@ -216,9 +283,12 @@ function Part1Section({ onDone, onError }: { onDone: (r: SectionResult) => void;
         )}
         {stage === 'ready' && <Button onClick={begin}>开始回答</Button>}
         {stage === 'recording' && (
-          <div className="flex items-center justify-between">
-            <Badge variant="destructive">● 录音中</Badge>
-            <Button onClick={stopAndSubmit}>停止并提交</Button>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Badge variant="destructive">● 录音中</Badge>
+              <Button onClick={stopAndSubmit}>停止并提交</Button>
+            </div>
+            <Waveform stream={recorder.stream} />
           </div>
         )}
         {stage === 'processing' && <p className="text-sm text-muted-foreground">处理中…</p>}
@@ -311,29 +381,34 @@ function Part2Section({
           </Button>
         )}
         {stage === 'running' && (
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-muted-foreground">
-                {timer.phase.label}
-                {timer.phaseIndex === 1 && recorder.isRecording && (
-                  <Badge variant="destructive" className="ml-2">
-                    ● 录音中
-                  </Badge>
-                )}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-muted-foreground">
+                  {timer.phase.label}
+                  {timer.phaseIndex === 1 && recorder.isRecording && (
+                    <Badge variant="destructive" className="ml-2">
+                      ● 录音中
+                    </Badge>
+                  )}
+                </div>
+                <div className={cn('text-3xl font-mono', timer.remaining < 300 && timer.running && 'text-destructive animate-pulse')}>
+                  {formatTime(timer.remaining)}
+                </div>
               </div>
-              <div className="text-3xl font-mono">{formatTime(timer.remaining)}</div>
+              {timer.phaseIndex === 1 && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    timer.pause()
+                    finishAndSubmit()
+                  }}
+                >
+                  提前结束
+                </Button>
+              )}
             </div>
-            {timer.phaseIndex === 1 && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  timer.pause()
-                  finishAndSubmit()
-                }}
-              >
-                提前结束
-              </Button>
-            )}
+            {timer.phaseIndex === 1 && recorder.isRecording && <Waveform stream={recorder.stream} />}
           </div>
         )}
         {stage === 'processing' && <p className="text-sm text-muted-foreground">处理中…</p>}
@@ -397,9 +472,9 @@ function Part3Section({
       if (data.done) {
         onDone({ scores: data.scores, band_overall: data.band_overall, errorTags: data.errorTags })
       } else {
-        setQuestion(data.questionText)
-        setAudioUrl(data.questionAudioUrl)
-        setTurnIndex(data.turnIndex)
+        setQuestion(data.questionText || data.nextQuestion || '')
+        setAudioUrl(data.questionAudioUrl || '')
+        setTurnIndex(data.turnIndex ?? turnIndex + 1)
         setStage('question')
       }
     } catch (e) {
@@ -421,9 +496,12 @@ function Part3Section({
             <audio ref={audioRef} src={audioUrl} controls className="w-full" />
             {stage === 'question' && <Button onClick={beginAnswer}>开始回答</Button>}
             {stage === 'recording' && (
-              <div className="flex items-center justify-between">
-                <Badge variant="destructive">● 录音中</Badge>
-                <Button onClick={stopAndSubmit}>停止并提交</Button>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Badge variant="destructive">● 录音中</Badge>
+                  <Button onClick={stopAndSubmit}>停止并提交</Button>
+                </div>
+                <Waveform stream={recorder.stream} />
               </div>
             )}
             {stage === 'processing' && <p className="text-sm text-muted-foreground">考官思考中…</p>}

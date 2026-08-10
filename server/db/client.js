@@ -19,6 +19,33 @@ function addColumnIfMissing(database, table, column, definition) {
 function runMigrations(database) {
   addColumnIfMissing(database, 'vocab', 'needs_reinforcement', 'INTEGER NOT NULL DEFAULT 0');
   addColumnIfMissing(database, 'exam_sessions', 'progress', 'TEXT');
+
+  // 用户系统：给已有的几张"个人数据"表补user_id列(新建库走schema.sql已经带这列，这里是兼容旧库)。
+  // 索引必须在列确实存在之后才能建，所以也放在这里而不是schema.sql里。
+  addColumnIfMissing(database, 'attempts', 'user_id', 'TEXT REFERENCES users(id)');
+  addColumnIfMissing(database, 'exam_sessions', 'user_id', 'TEXT REFERENCES users(id)');
+  addColumnIfMissing(database, 'vocab', 'user_id', 'TEXT REFERENCES users(id)');
+  addColumnIfMissing(database, 'expression_review', 'user_id', 'TEXT REFERENCES users(id)');
+  addColumnIfMissing(database, 'attempts', 'session_id', 'TEXT');
+  database.exec(`
+    CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(user_id);
+    CREATE INDEX IF NOT EXISTS idx_attempts_session ON attempts(session_id);
+    CREATE INDEX IF NOT EXISTS idx_vocab_user ON vocab(user_id);
+    CREATE INDEX IF NOT EXISTS idx_exam_sessions_user ON exam_sessions(user_id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_expression_review_user_item ON expression_review(user_id, item_id);
+  `);
+  // 清理重复词条（同用户+同词，保留最早插入的那条），再建唯一索引防止后续重复
+  database.exec(`
+    DELETE FROM vocab WHERE rowid NOT IN (
+      SELECT MIN(rowid) FROM vocab GROUP BY user_id, LOWER(TRIM(word))
+    );
+  `);
+  try {
+    database.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_vocab_user_word ON vocab(user_id, LOWER(TRIM(word)));`);
+  } catch (_) {
+    // 如果还有重复导致索引建不上，跳过——运行时插入逻辑会兜底
+  }
+  addColumnIfMissing(database, 'items', 'deleted_at', 'TEXT');
 }
 
 function getDb() {

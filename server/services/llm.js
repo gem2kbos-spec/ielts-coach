@@ -6,8 +6,9 @@
 const { askClaudeForJson } = require('./claudeClient');
 const { askDeepSeekForJson } = require('./deepseekClient');
 const { logUsage } = require('../db/usageLogRepo');
+const { incrementAiCalls } = require('../db/usersRepo');
 
-async function askForJson({ feature, ...opts }) {
+async function askForJson({ feature, userId, ...opts }) {
   const provider = (process.env.LLM_PROVIDER || 'claude').toLowerCase();
   const result = provider === 'deepseek' ? await askDeepSeekForJson(opts) : await askClaudeForJson(opts);
   try {
@@ -15,6 +16,14 @@ async function askForJson({ feature, ...opts }) {
   } catch (err) {
     // 记日志失败不该影响主流程
     console.error('[usage log failed]', err.message);
+  }
+  // 给后续加限额功能铺路：现在只计数，不做任何拦截
+  if (userId) {
+    try {
+      incrementAiCalls(userId);
+    } catch (err) {
+      console.error('[ai calls count failed]', err.message);
+    }
   }
   return result;
 }

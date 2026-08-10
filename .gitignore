@@ -9,6 +9,7 @@ data/audio/tts_cache/*
 !data/audio/tts_cache/.gitkeep
 tools/whisper.cpp/
 tools/models/
+.tools/
 client/dist/
 *.log
 .DS_Store

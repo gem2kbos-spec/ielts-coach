@@ -12,10 +12,11 @@ allowed-tools:
 2. 脚本输出 JSON，包含：
    - `totalAttempts`：总练习次数
    - `byModule`：各模块练习次数+平均band（阅读/听力没有band概念时是平均正确率`avgAccuracy`）
+   - `bySubtype`：按更细的子类型拆分(写作Task1/Task2分开、口语Part1/Part2/Part3/完整流程分开、听力单题/全真模拟分开)，比如能回答"我写作Task1比Task2弱"这种更具体的问题，key是`module:子类型`形式，每项有`label`(中文名)+`count`+`avgBand`/`avgAccuracy`
    - `errorTagFrequency`：弱项标签出现频率（键的中文含义见下表）
    - `trend`：按日期的band变化序列
    - `listeningBySection`：听力按S1-S4统计的正确率+练习次数，专门回答"我听力哪个section最差"这类问题
-3. 自己读懂这些数据后，用中文给用户一段诊断 + 具体训练建议，不要原样转发JSON。如果 `totalAttempts` 是 0，直接说"还没有练习记录，建议先去写一篇Task2或练一次口语Part2"。
+3. 自己读懂这些数据后，用中文给用户一段诊断 + 具体训练建议，不要原样转发JSON。如果 `totalAttempts` 是 0，直接说"还没有练习记录，写作/口语/阅读/听力随便练一次都行，攒点数据才能诊断"，别只点名Task2/Part2这两个——系统现在四个模块都有内容。
 
 ## 弱项标签含义
 
@@ -34,8 +35,10 @@ allowed-tools:
 
 ## 诊断思路
 
-- 哪个模块平均band明显低于其他模块 → 重点练那个模块。
+- 哪个模块平均band明显低于其他模块 → 重点练那个模块；再看`bySubtype`细分到具体子类型(比如发现"写作"整体一般，但拆开看是Task1明显拖后腿、Task2其实还行，建议就该聚焦Task1，不是泛泛说"多练写作")。
 - 哪个标签出现频率最高 → 那是当前最该解决的具体问题，给1-2个针对性练习建议（比如`chinglish`高频就建议重点用"中式英语检测"功能复盘旧作文；`filler_heavy`高频就建议多做几次口语Part2专门盯着填充词指标）。
+- 用户想回头看某一次具体的练习记录(比如"上次那篇作文写得怎么样")：提示他们打开 `<base_url>/history`，按模块筛选+点进去看完整历史详情(作文原文+评语、口语转写、阅读/听力逐题对照)。
+- 用户想知道"我反复犯的错误有哪些"(不是单次诊断，是跨多次练习的重复模式)：提示他们打开 `<base_url>/weakness`——汇总了写作里反复出现的中式表达、口语里反复被标记的发音风险词、阅读/听力标记的生词，按出现次数排序。
 - 如果`trend`里band在涨，鼓励一下；在跌或停滞，提醒可能是练习量不够或者最近换了更难的题。
 - 用户当前目标分（如果对话里提到过）和实际band有差距的话，给出大概需要多少次额外练习的粗略建议，别精确到小数点，定性说明就行。
 
@@ -45,4 +48,4 @@ allowed-tools:
 
 ## 如果用户要"找听力弱section的练习"
 
-读上面脚本输出的 `listeningBySection`，确定是用户指名的section还是正确率最低的那个，再查 `curl -s http://localhost:3000/api/listening/sections` 挑一个对应section、没做过的优先，直接打开 `<base_url>/listening/exam/<id>`。具体步骤参考 `ielts-listening` skill。
+读上面脚本输出的 `listeningBySection`，确定是用户指名的section还是正确率最低的那个。这一步要开浏览器+curl接口了（跟上面纯读DB的analyze.js不一样），先跑一次 `bash ~/ielts-coach/skills/_shared/ensure-server.sh` 拿到 `$TOKEN`，再查 `curl -s -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/listening/sections` 挑一个对应section、没做过的优先，直接打开 `<base_url>/listening/exam/<id>`。具体步骤参考 `ielts-listening` skill。

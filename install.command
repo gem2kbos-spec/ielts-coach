@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# 雅思全科练习系统 - 一键安装/启动（macOS）
+# G2Band - 一键安装/启动（macOS）
 # 双击运行，或在终端里执行 ./install.command
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 echo "=================================="
-echo " 雅思全科练习系统 - 安装/启动"
+echo " G2Band - 安装/启动"
 echo "=================================="
 
 # 让已有的 nvm 安装生效（如果有），避免重复装

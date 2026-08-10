@@ -7,7 +7,7 @@ const itemSchema = {
   required: ['module', 'subtype', 'content'],
   properties: {
     id: { type: 'string' },
-    module: { type: 'string', enum: ['writing', 'reading', 'listening', 'speaking'] },
+    module: { type: 'string', enum: ['writing', 'reading', 'listening', 'speaking', 'writing_expression'] },
     subtype: { type: 'string', minLength: 1 },
     difficulty: { type: ['string', 'null'], enum: ['easy', 'medium', 'hard', null] },
     tags: { type: 'array', items: { type: 'string' } },

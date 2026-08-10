@@ -43,7 +43,7 @@ function getItem(id) {
 
 function listItems({ module, subtype } = {}) {
   const db = getDb();
-  let sql = 'SELECT * FROM items WHERE 1=1';
+  let sql = 'SELECT * FROM items WHERE deleted_at IS NULL';
   const params = [];
   if (module) {
     sql += ' AND module = ?';
@@ -57,9 +57,26 @@ function listItems({ module, subtype } = {}) {
   return db.prepare(sql).all(...params).map(rowToItem);
 }
 
-function deleteItem(id) {
+function listDeletedItems({ module } = {}) {
   const db = getDb();
-  db.prepare('DELETE FROM items WHERE id = ?').run(id);
+  let sql = 'SELECT * FROM items WHERE deleted_at IS NOT NULL';
+  const params = [];
+  if (module) {
+    sql += ' AND module = ?';
+    params.push(module);
+  }
+  sql += ' ORDER BY deleted_at DESC';
+  return db.prepare(sql).all(...params).map(rowToItem);
 }
 
-module.exports = { upsertItem, getItem, listItems, deleteItem };
+function deleteItem(id) {
+  const db = getDb();
+  db.prepare("UPDATE items SET deleted_at = datetime('now') WHERE id = ?").run(id);
+}
+
+function restoreItem(id) {
+  const db = getDb();
+  db.prepare('UPDATE items SET deleted_at = NULL WHERE id = ?').run(id);
+}
+
+module.exports = { upsertItem, getItem, listItems, listDeletedItems, deleteItem, restoreItem };

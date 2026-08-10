@@ -2,9 +2,9 @@ const { getDb } = require('../db/client');
 
 // 统计用户阅读错题里，按题型分组的出错率，取出错率最高的几种题型作为"薄弱题型"，
 // 供AI生成阅读时优先安排这些题型。数据量太少(没有任何阅读记录)时返回空数组，交给生成逻辑随机分配。
-function getWeakQuestionTypes({ limit = 3, minSamples = 3 } = {}) {
+function getWeakQuestionTypes(userId, { limit = 3, minSamples = 3 } = {}) {
   const db = getDb();
-  const rows = db.prepare("SELECT score FROM attempts WHERE module = 'reading'").all();
+  const rows = db.prepare("SELECT score FROM attempts WHERE module = 'reading' AND user_id = ?").all(userId);
 
   const wrongByType = {};
   const totalByType = {};

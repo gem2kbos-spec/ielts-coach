@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
 const express = require('express');
 const multer = require('multer');
 const { listItems, getItem, upsertItem } = require('../db/itemsRepo');
@@ -9,11 +10,16 @@ const { extractPdfPages, extractPdfText } = require('../services/pdf');
 const { renderPageToPng } = require('../services/pdfImage');
 const { getAudioDurationSec } = require('../services/audio');
 const { askForJson } = require('../services/llm');
+const { speak, DEFAULT_VOICE } = require('../services/tts');
+const { hasOpenAiTts, synthesizeIeltsListeningAudio } = require('../services/openaiTts');
+const { synthesizeEdgeListeningAudio } = require('../services/edgeTts');
 const { parseListeningDocument } = require('../lib/listeningParser');
 const { pairFiles, AUDIO_EXT } = require('../lib/listeningPairing');
 const { buildListeningAnswerKeyPrompt, buildListeningErrorTagPrompt } = require('../lib/listeningPrompt');
+const { buildListeningGeneratePrompt } = require('../lib/listeningGeneratePrompt');
 const { rawScoreToBand } = require('../lib/listeningBand');
 const { gradeSection } = require('../lib/listeningGrading');
+const { computeDictationDiff } = require('../lib/dictationDiff');
 const { createPreview, getPreview } = require('../services/listeningPreviewCache');
 
 const USER_IMPORTS_DIR = path.join(__dirname, '..', '..', 'data', 'user-imports', 'listening');
@@ -191,6 +197,7 @@ router.post('/suggest-answers', async (req, res) => {
       prompt: buildListeningAnswerKeyPrompt({ transcript, questions }),
       timeoutMs: 60_000,
       retries: 1,
+      userId: req.userId,
     });
     res.json({ answers: data.answers, costUsd });
   } catch (err) {
@@ -205,6 +212,147 @@ function saveImportedAudio(itemId, audioPath, originalname) {
   const dest = path.join(dir, `audio${ext}`);
   fs.copyFileSync(audioPath, dest);
   return dest;
+}
+
+async function synthesizeListeningAudio({ transcript, section, title, voice, rate }) {
+  const preferred = (process.env.LISTENING_TTS_PROVIDER || 'edge').toLowerCase();
+  if (preferred === 'openai' && hasOpenAiTts()) {
+    const aiAudio = await synthesizeIeltsListeningAudio({ transcript, section, title });
+    return {
+      ttsPath: aiAudio.audioPath,
+      audioMeta: {
+        provider: aiAudio.provider,
+        model: aiAudio.model,
+        voiceMap: aiAudio.voiceMap,
+        style: 'ielts_realistic_ai',
+      },
+    };
+  }
+
+  try {
+    const edgeAudio = await synthesizeEdgeListeningAudio({ transcript, section, title });
+    return {
+      ttsPath: edgeAudio.audioPath,
+      audioMeta: {
+        provider: edgeAudio.provider,
+        model: edgeAudio.model,
+        voiceMap: edgeAudio.voiceMap,
+        style: 'free_neural_edge',
+      },
+    };
+  } catch (err) {
+    if (preferred === 'edge-strict') throw err;
+    const fallbackPath = await speak(transcript, {
+      voice: voice || DEFAULT_VOICE,
+      rate: Number(rate || 150),
+    });
+    return {
+      ttsPath: fallbackPath,
+      audioMeta: {
+        provider: 'macos_say',
+        voice: voice || DEFAULT_VOICE,
+        style: 'fallback_machine_tts',
+        fallbackReason: err.message,
+      },
+    };
+  }
+}
+
+function normalizeGeneratedQuestion(q, fallbackNumber) {
+  const expectedCount = Number(q.expectedCount || 0) || undefined;
+  return {
+    number: Number(q.number || fallbackNumber),
+    type: q.type || 'fill_blank',
+    prompt: String(q.prompt || '').trim(),
+    options: Array.isArray(q.options) ? q.options : null,
+    expectedCount,
+    correct_answer: Array.isArray(q.correct_answer)
+      ? q.correct_answer.map((a) => String(a).trim()).filter(Boolean)
+      : String(q.correct_answer || '').trim(),
+    explanation: q.explanation ? String(q.explanation) : null,
+  };
+}
+
+async function createGeneratedListeningSection({ userId, section, topic, difficulty, extraRequirements, voice, rate }) {
+  const { data, costUsd } = await askForJson({
+    feature: 'listening_generate',
+    prompt: buildListeningGeneratePrompt({ section, topic, difficulty, extraRequirements }),
+    timeoutMs: 120_000,
+    retries: 1,
+    userId,
+  });
+
+  const transcript = String(data.transcript || '').trim();
+  const questions = Array.isArray(data.questions)
+    ? data.questions.slice(0, 10).map((q, idx) => normalizeGeneratedQuestion(q, idx + 1))
+    : [];
+  if (!transcript || questions.length !== 10) {
+    throw new Error('AI生成结果不完整：需要完整原文和10道题');
+  }
+
+  const itemId = crypto.randomUUID();
+  const content = {
+    title: data.title || `AI Listening ${section || 'S2'}`,
+    section: data.section || section || 'S2',
+    defaultDurationSec: Number(data.defaultDurationSec || 600),
+    durationSec: null,
+    transcript,
+    imagePath: null,
+    questions,
+  };
+
+  const { ttsPath, audioMeta } = await synthesizeListeningAudio({
+    transcript,
+    section: content.section,
+    title: content.title,
+    voice,
+    rate,
+  });
+  const audioDest = saveImportedAudio(itemId, ttsPath, `generated-listening${path.extname(ttsPath) || '.mp3'}`);
+  const durationSec = await getAudioDurationSec(audioDest).catch(() => null);
+
+  const updated = upsertItem({
+    id: itemId,
+    module: 'listening',
+    subtype: 'listening_section',
+    difficulty: difficulty || 'medium',
+    tags: ['ai-generated', content.section || 'S2'],
+    source: 'ai_generated',
+    file_path: audioDest,
+    content: { ...content, durationSec, audioMeta },
+  });
+
+  return { item: updated, costUsd };
+}
+
+async function revoiceListeningItem(item) {
+  if (!item?.content?.transcript) {
+    throw new Error('这个 section 没有 transcript，无法重新生成音频');
+  }
+  const { ttsPath, audioMeta } = await synthesizeListeningAudio({
+    transcript: item.content.transcript,
+    section: item.content.section || 'S2',
+    title: item.content.title,
+  });
+  const audioDest = saveImportedAudio(item.id, ttsPath, `ai-listening${path.extname(ttsPath) || '.mp3'}`);
+  const durationSec = await getAudioDurationSec(audioDest).catch(() => null);
+  return upsertItem({
+    id: item.id,
+    module: item.module,
+    subtype: item.subtype,
+    difficulty: item.difficulty,
+    tags: item.tags,
+    source: item.source,
+    file_path: audioDest,
+    content: {
+      ...item.content,
+      durationSec,
+      audioMeta: {
+        ...audioMeta,
+        regeneratedAt: new Date().toISOString(),
+      },
+    },
+  });
 }
 
 async function saveMapImage(itemId, pdfPath, pageNumber) {
@@ -262,10 +410,101 @@ router.post('/import', async (req, res) => {
   res.json({ created });
 });
 
+router.post('/generate', async (req, res) => {
+  const {
+    count = 1,
+    section = 'S2',
+    topic = '',
+    difficulty = 'medium',
+    extraRequirements = '',
+    voice,
+    rate,
+  } = req.body || {};
+  const safeCount = Math.max(1, Math.min(Number(count) || 1, 8));
+  const sections = ['S1', 'S2', 'S3', 'S4'];
+  const created = [];
+  const failed = [];
+
+  for (let i = 0; i < safeCount; i += 1) {
+    const sectionToUse = section === 'mixed' ? sections[i % sections.length] : section;
+    try {
+      const result = await createGeneratedListeningSection({
+        userId: req.userId,
+        section: sectionToUse,
+        topic,
+        difficulty,
+        extraRequirements,
+        voice,
+        rate,
+      });
+      created.push({
+        id: result.item.id,
+        title: result.item.content.title,
+        section: result.item.content.section,
+        questionCount: result.item.content.questions.length,
+        durationSec: result.item.content.durationSec,
+        costUsd: result.costUsd,
+      });
+    } catch (err) {
+      failed.push({ index: i + 1, section: sectionToUse, error: err.message });
+    }
+  }
+
+  if (created.length === 0) {
+    return res.status(502).json({ error: failed[0]?.error || '生成失败', created, failed });
+  }
+  res.json({ created, failed });
+});
+
+router.post('/sections/:id/revoice', async (req, res) => {
+  const item = getItem(req.params.id);
+  if (!item || item.module !== 'listening' || item.subtype !== 'listening_section') {
+    return res.status(404).json({ error: 'not found' });
+  }
+  try {
+    const updated = await revoiceListeningItem(item);
+    res.json({
+      id: updated.id,
+      title: updated.content.title,
+      durationSec: updated.content.durationSec,
+      audioMeta: updated.content.audioMeta,
+    });
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+router.post('/revoice-generated', async (req, res) => {
+  const { limit = 6 } = req.body || {};
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 6, 20));
+  const candidates = listItems({ module: 'listening', subtype: 'listening_section' })
+    .filter((item) => item.source === 'ai_generated' && item.content.transcript && !['edge', 'openai'].includes(item.content.audioMeta?.provider))
+    .slice(0, safeLimit);
+  const updated = [];
+  const failed = [];
+  for (const item of candidates) {
+    try {
+      const revoiced = await revoiceListeningItem(item);
+      updated.push({
+        id: revoiced.id,
+        title: revoiced.content.title,
+        durationSec: revoiced.content.durationSec,
+        audioMeta: revoiced.content.audioMeta,
+      });
+    } catch (err) {
+      failed.push({ id: item.id, title: item.content.title, error: err.message });
+    }
+  }
+  if (updated.length === 0 && failed.length > 0) {
+    return res.status(502).json({ error: failed[0].error, updated, failed });
+  }
+  res.json({ updated, failed });
+});
+
 router.get('/sections', (req, res) => {
   const items = listItems({ module: 'listening', subtype: 'listening_section' });
   const enriched = items.map((item) => {
-    const attempt = getLatestAttemptForItem(item.id);
+    const attempt = getLatestAttemptForItem(item.id, req.userId);
     return {
       id: item.id,
       title: item.content.title,
@@ -275,6 +514,9 @@ router.get('/sections', (req, res) => {
       completed: !!attempt,
       lastAccuracy: attempt?.score?.accuracy ?? null,
       source: item.source,
+      hasTranscript: !!item.content.transcript,
+      audioProvider: item.content.audioMeta?.provider || null,
+      audioStyle: item.content.audioMeta?.style || null,
       created_at: item.created_at,
     };
   });
@@ -297,6 +539,21 @@ router.get('/sections/:id', (req, res) => {
   });
 });
 
+// 听写模式：原文在提交对比之前不下发给前端(跟做题阶段隐藏正确答案是一样的思路)，
+// 用户提交自己听写的文本，服务端算完对比结果再把原文带出来。
+router.post('/sections/:id/dictation-check', (req, res) => {
+  const item = getItem(req.params.id);
+  if (!item || item.module !== 'listening' || item.subtype !== 'listening_section') {
+    return res.status(404).json({ error: 'not found' });
+  }
+  if (!item.content.transcript) {
+    return res.status(400).json({ error: '这个section没有听力原文，没法做听写对比' });
+  }
+  const { userText } = req.body;
+  const diff = computeDictationDiff(item.content.transcript, userText || '');
+  res.json({ transcript: item.content.transcript, ...diff });
+});
+
 router.get('/sections/:id/map-image', (req, res) => {
   const item = getItem(req.params.id);
   if (!item || !item.content.imagePath) return res.status(404).json({ error: 'not found' });
@@ -304,13 +561,13 @@ router.get('/sections/:id/map-image', (req, res) => {
 });
 
 router.post('/sections/:id/submit', async (req, res) => {
-  const { answers, durationSec } = req.body;
+  const { answers, durationSec, questionNumbers } = req.body;
   const item = getItem(req.params.id);
   if (!item || item.module !== 'listening' || item.subtype !== 'listening_section') {
     return res.status(404).json({ error: 'not found' });
   }
 
-  const { perQuestion, correctCount, total } = gradeSection(item, answers);
+  const { perQuestion, correctCount, total } = gradeSection(item, answers, questionNumbers);
   const accuracy = total > 0 ? Math.round((correctCount / total) * 1000) / 10 : 0;
   const wrongAnswers = perQuestion.filter((q) => !q.correct);
 
@@ -323,6 +580,7 @@ router.post('/sections/:id/submit', async (req, res) => {
         prompt: buildListeningErrorTagPrompt({ transcript: item.content.transcript, wrongAnswers }),
         timeoutMs: 60_000,
         retries: 1,
+        userId: req.userId,
       });
       errorTags = data.tags || [];
       perQuestionTags = data.per_question || [];
@@ -332,10 +590,11 @@ router.post('/sections/:id/submit', async (req, res) => {
   }
 
   const attempt = createAttempt({
+    userId: req.userId,
     module: 'listening',
     itemId: item.id,
     durationSec,
-    rawResponse: { answers },
+    rawResponse: { answers, questionNumbers: questionNumbers || null },
     score: { accuracy, correctCount, total, perQuestion },
     bandOverall: null,
     errorTags,
@@ -376,6 +635,7 @@ router.post('/mock/submit', async (req, res) => {
     // 单独给每个section也记一条attempt，这样"全真模拟"里做过的section在选题页也会显示"已完成"
     const sectionAccuracy = total > 0 ? Math.round((correctCount / total) * 1000) / 10 : 0;
     createAttempt({
+      userId: req.userId,
       module: 'listening',
       itemId: item.id,
       durationSec: sr.durationSec || null,
@@ -396,6 +656,7 @@ router.post('/mock/submit', async (req, res) => {
         prompt: buildListeningErrorTagPrompt({ transcript: null, wrongAnswers: allWrong }),
         timeoutMs: 60_000,
         retries: 1,
+        userId: req.userId,
       });
       errorTags = data.tags || [];
     } catch {
@@ -404,6 +665,7 @@ router.post('/mock/submit', async (req, res) => {
   }
 
   const attempt = createAttempt({
+    userId: req.userId,
     module: 'listening',
     itemId: null,
     durationSec,

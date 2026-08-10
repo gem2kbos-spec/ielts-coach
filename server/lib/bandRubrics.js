@@ -15,12 +15,18 @@ Also flag any Chinglish / clichéd formulaic expressions overused by Chinese IEL
 
 Then rewrite the ENTIRE essay twice: once as a realistic band 7 version (clear, mostly accurate, some minor issues remain, around 250-280 words), and once as a realistic band 9 version (sophisticated, natural, fully developed, around 280-320 words). Keep the same stance/ideas as the student where reasonable, but improve execution. The rewrite fields must contain ONLY the essay prose itself — no word counts, no meta-commentary about the rewrite, no notes in parentheses, no headings like "(Expanded version)". If you need more words to reach a realistic length, just write a longer essay; do not narrate that you are doing so.
 
+Important output language rule:
+- All score comments, Chinglish issues, and improvement explanations must be concise Chinese.
+- Each criterion comment should be one Chinese sentence, ideally under 45 Chinese characters.
+- Keep chinglish to at most 3 high-impact items.
+- rewrite_band7 and rewrite_band9 must remain English essay prose.
+
 Respond with ONLY this JSON object, no markdown fences, no extra text:
 {
   "scores": { "ta": <number>, "cc": <number>, "lr": <number>, "gra": <number> },
   "band_overall": <number>,
-  "comments": { "ta": "<1-2 sentences>", "cc": "<1-2 sentences>", "lr": "<1-2 sentences>", "gra": "<1-2 sentences>" },
-  "chinglish": [ { "phrase": "<exact quote>", "issue": "<why>", "suggestion": "<better phrasing>" } ],
+  "comments": { "ta": "<1 concise Chinese sentence>", "cc": "<1 concise Chinese sentence>", "lr": "<1 concise Chinese sentence>", "gra": "<1 concise Chinese sentence>" },
+  "chinglish": [ { "phrase": "<exact quote>", "issue": "<concise Chinese explanation>", "suggestion": "<better English phrasing>" } ],
   "rewrite_band7": "<full essay text>",
   "rewrite_band9": "<full essay text>"
 }`;
@@ -50,12 +56,18 @@ Also flag any Chinglish / clichéd formulaic expressions overused by Chinese IEL
 
 Then rewrite the ENTIRE response twice: once as a realistic band 7 version (clear, mostly accurate, around 150-170 words), and once as a realistic band 9 version (precise, well-organised, fully covers key features, around 170-200 words). The rewrite fields must contain ONLY the response prose itself — no word counts, no meta-commentary, no headings.
 
+Important output language rule:
+- All score comments, Chinglish issues, and improvement explanations must be concise Chinese.
+- Each criterion comment should be one Chinese sentence, ideally under 45 Chinese characters.
+- Keep chinglish to at most 3 high-impact items.
+- rewrite_band7 and rewrite_band9 must remain English response prose.
+
 Respond with ONLY this JSON object, no markdown fences, no extra text:
 {
   "scores": { "ta": <number>, "cc": <number>, "lr": <number>, "gra": <number> },
   "band_overall": <number>,
-  "comments": { "ta": "<1-2 sentences>", "cc": "<1-2 sentences>", "lr": "<1-2 sentences>", "gra": "<1-2 sentences>" },
-  "chinglish": [ { "phrase": "<exact quote>", "issue": "<why>", "suggestion": "<better phrasing>" } ],
+  "comments": { "ta": "<1 concise Chinese sentence>", "cc": "<1 concise Chinese sentence>", "lr": "<1 concise Chinese sentence>", "gra": "<1 concise Chinese sentence>" },
+  "chinglish": [ { "phrase": "<exact quote>", "issue": "<concise Chinese explanation>", "suggestion": "<better English phrasing>" } ],
   "rewrite_band7": "<full response text>",
   "rewrite_band9": "<full response text>"
 }`;

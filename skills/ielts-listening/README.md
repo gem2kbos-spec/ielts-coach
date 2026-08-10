@@ -11,13 +11,13 @@ open http://localhost:5173/listening          # 选题菜单
 open http://localhost:5173/listening/mock     # 全真模拟组卷
 ```
 
-或直接调接口：
+或直接调接口（都要带登录token，`$TOKEN`取自`ensure-server.sh`输出）：
 
 ```bash
-curl -s http://localhost:3000/api/listening/template                    # 下载批量导入JSON模板
-curl -s -F "files=@a.mp3" -F "files=@a.pdf" http://localhost:3000/api/listening/upload  # 上传配对预览
-curl -s http://localhost:3000/api/listening/sections                    # 题库列表+完成状态
-node ~/ielts-coach/skills/ielts-diagnosis/scripts/analyze.js 30         # 含 listeningBySection 按section正确率
+curl -s -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/listening/template                    # 下载批量导入JSON模板
+curl -s -H "Authorization: Bearer $TOKEN" -F "files=@a.mp3" -F "files=@a.pdf" http://localhost:3000/api/listening/upload  # 上传配对预览
+curl -s -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/listening/sections                    # 题库列表+完成状态
+node ~/ielts-coach/skills/ielts-diagnosis/scripts/analyze.js 30         # 含 listeningBySection 按section正确率（自己读本机登录态，不需要$TOKEN）
 ```
 
 完整流程（导入→单题练习→判分→全真模拟组卷→连续4节→模考结果）已经用合成的测试音频+PDF + 无头浏览器跑通过一次。
