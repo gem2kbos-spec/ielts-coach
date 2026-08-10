@@ -33,6 +33,10 @@ async function askDeepSeek({ prompt, model = DEFAULT_MODEL, timeoutMs = 60_000, 
       body: JSON.stringify({
         model,
         messages: [{ role: 'user', content: prompt }],
+        // DeepSeek V4 默认开启思考模式，长阅读题会先把额度消耗在
+        // reasoning_content，导致最终 content 为空。题库接口需要直接输出 JSON，
+        // 因此明确关闭思考模式。
+        thinking: { type: 'disabled' },
         temperature: 0.3,
         max_tokens: maxTokens,
         // DeepSeek 的 JSON 模式要求 prompt 里出现字面的 "json" 字样才会生效，
@@ -66,8 +70,8 @@ async function askDeepSeek({ prompt, model = DEFAULT_MODEL, timeoutMs = 60_000, 
 async function askDeepSeekForJson({ retries = 1, ...opts }) {
   let lastErr;
   for (let attempt = 0; attempt <= retries; attempt += 1) {
-    const { text, costUsd } = await askDeepSeek(opts);
     try {
+      const { text, costUsd } = await askDeepSeek(opts);
       return { data: extractJson(text), costUsd };
     } catch (err) {
       lastErr = err;
