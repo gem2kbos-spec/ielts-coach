@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Navigate, Routes, Route } from 'react-router-dom'
 import Home from '@/modules/home/Home'
 import ImportPanel from '@/modules/items/ImportPanel'
 import Task1Exam from '@/modules/writing/Task1Exam'
@@ -37,20 +37,12 @@ import ExpressionHistory from '@/modules/writing/expressions/ExpressionHistory'
 import ExpressionReview from '@/modules/writing/expressions/ExpressionReview'
 import ExpressionBatch from '@/modules/writing/expressions/ExpressionBatch'
 import PageTransition from '@/components/PageTransition'
-import RequireAuth from '@/components/RequireAuth'
-import Login from '@/modules/auth/Login'
 
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route
-        element={
-          <RequireAuth>
-            <PageTransition />
-          </RequireAuth>
-        }
-      >
+      <Route path="/login" element={<Navigate to="/" replace />} />
+      <Route element={<PageTransition />}>
         <Route path="/" element={<Home />} />
         <Route path="/diagnosis" element={<DiagnosisPage />} />
         <Route path="/import" element={<ImportPanel />} />

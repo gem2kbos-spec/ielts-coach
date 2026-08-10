@@ -47,6 +47,18 @@ function getUserById(id) {
   return db.prepare('SELECT * FROM users WHERE id = ?').get(id) || null;
 }
 
+function getOrCreateSingleUser() {
+  const existing = getUserById('single-user');
+  if (existing) return existing;
+  const db = getDb();
+  db.prepare(
+    `INSERT INTO users (id, email, password_hash, plan_type, ai_calls_today_date, ai_calls_month_key)
+     VALUES ('single-user', 'local@ielts.coach', 'login-disabled', 'pro', ?, ?)`
+  ).run(todayKey(), monthKey());
+  claimOrphanedData('single-user');
+  return getUserById('single-user');
+}
+
 // 第一个注册的用户（本地版从单用户切到多用户那一刻）认领之前所有"没有主人"的练习数据，
 // 这样升级用户系统不会丢掉之前已经攒下的真实练习记录。只在count(users)===0时调用一次。
 function claimOrphanedData(userId) {
@@ -81,6 +93,7 @@ module.exports = {
   createUser,
   getUserByEmail,
   getUserById,
+  getOrCreateSingleUser,
   claimOrphanedData,
   incrementAiCalls,
 };

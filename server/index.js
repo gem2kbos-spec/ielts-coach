@@ -17,8 +17,7 @@ const backupRouter = require('./routes/backup');
 const historyRouter = require('./routes/history');
 const weaknessRouter = require('./routes/weakness');
 const expressionsRouter = require('./routes/expressions');
-const authRouter = require('./routes/auth');
-const { requireAuth } = require('./middleware/auth');
+const { getOrCreateSingleUser } = require('./db/usersRepo');
 const { examLockMiddleware } = require('./services/examTimer');
 
 const app = express();
@@ -51,10 +50,13 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// /api/auth(注册/登录)本身不需要登录态；这一行之后的所有/api/*路由都要求带合法JWT，
-// 校验通过后request上会带req.userId，下游路由/examLockMiddleware按这个做用户级数据隔离/锁定。
-app.use('/api/auth', authRouter);
-app.use('/api', requireAuth);
+// 这是用户自用的单用户训练站：无需登录，所有学习记录归入同一个固定档案。
+// 固定ID保证同一次部署中的题库、错题、生词和进度始终关联到同一用户。
+getOrCreateSingleUser();
+app.use('/api', (req, _res, next) => {
+  req.userId = 'single-user';
+  next();
+});
 app.use(examLockMiddleware);
 
 app.use('/api/items', itemsRouter);
