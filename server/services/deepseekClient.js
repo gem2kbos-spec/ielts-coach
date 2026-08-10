@@ -1,7 +1,7 @@
 const { extractJson } = require('./claudeClient');
 
 const API_URL = 'https://api.deepseek.com/chat/completions';
-const DEFAULT_MODEL = 'deepseek-v4-flash'; // "deepseek-chat" 别名 2026-07-24 起停用，直接用新模型名
+const DEFAULT_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-v4-flash'; // 可由部署环境覆盖
 
 // 价格来自 DeepSeek 官方文档（2026-06），按 cache miss 计；可能会变，仅供粗略参考，
 // 不要把这个数字当成账单依据，真实扣费看 DeepSeek 后台。

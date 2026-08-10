@@ -37,7 +37,18 @@ if (process.env.DEBUG_REQUESTS === '1') {
 app.get('/api/health', (req, res) => {
   const db = getDb();
   const row = db.prepare('SELECT 1 as ok').get();
-  res.json({ app: 'ielts-coach', ok: row.ok === 1, time: new Date().toISOString() });
+  const llmProvider = (process.env.LLM_PROVIDER || 'claude').toLowerCase();
+  const aiConfigured = llmProvider === 'deepseek'
+    ? Boolean(process.env.DEEPSEEK_API_KEY)
+    : llmProvider === 'claude';
+  res.json({
+    app: 'ielts-coach',
+    ok: row.ok === 1,
+    aiConfigured,
+    llmProvider,
+    llmModel: llmProvider === 'deepseek' ? (process.env.DEEPSEEK_MODEL || 'deepseek-v4-flash') : null,
+    time: new Date().toISOString(),
+  });
 });
 
 // /api/auth(注册/登录)本身不需要登录态；这一行之后的所有/api/*路由都要求带合法JWT，
