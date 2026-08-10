@@ -1,10 +1,12 @@
 const express = require('express');
 const multer = require('multer');
 const os = require('os');
-const { listItems, getItem } = require('../db/itemsRepo');
+const fs = require('fs');
+const { listItems, getItem, upsertItem } = require('../db/itemsRepo');
 const { importFile } = require('../services/importer');
+const { parsePastedQuestionText } = require('../lib/pastedQuestionParser');
 
-const upload = multer({ dest: os.tmpdir() });
+const upload = multer({ dest: os.tmpdir(), limits: { fileSize: 100 * 1024 * 1024, files: 1 } });
 const router = express.Router();
 
 router.get('/', (req, res) => {
@@ -38,6 +40,51 @@ router.post('/import', upload.single('file'), async (req, res) => {
       hints,
     });
     res.json({ created });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  } finally {
+    fs.rmSync(req.file.path, { force: true });
+  }
+});
+
+router.post('/paste/preview', (req, res) => {
+  try {
+    res.json(parsePastedQuestionText(req.body?.text));
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.post('/paste/import', (req, res) => {
+  try {
+    const parsed = parsePastedQuestionText(req.body?.text);
+    if (!parsed.canImport) {
+      return res.status(400).json({ error: '题目仍有格式问题，请根据预览提示修正后再导入', warnings: parsed.warnings });
+    }
+    const difficulty = ['easy', 'medium', 'hard'].includes(req.body?.difficulty) ? req.body.difficulty : 'medium';
+    const created = upsertItem({
+      module: 'reading',
+      subtype: 'passage_with_questions',
+      difficulty,
+      tags: ['pasted-import'],
+      source: 'user_import',
+      content: {
+        title: parsed.title,
+        passage_text: parsed.passageText,
+        paragraphs: null,
+        injected_vocab: [],
+        questions: parsed.questions.map((q) => ({
+          number: q.number,
+          type: q.type,
+          instructions: null,
+          prompt: q.prompt,
+          options: q.options,
+          correct_answer: q.correct_answer,
+          explanation: q.explanation,
+        })),
+      },
+    });
+    res.json({ created, questionCount: parsed.questions.length });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

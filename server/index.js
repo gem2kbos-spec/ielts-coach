@@ -46,6 +46,7 @@ app.get('/api/health', (req, res) => {
     aiConfigured,
     llmProvider,
     llmModel: llmProvider === 'deepseek' ? (process.env.DEEPSEEK_MODEL || 'deepseek-v4-flash') : null,
+    nodeVersion: process.version,
     time: new Date().toISOString(),
   });
 });

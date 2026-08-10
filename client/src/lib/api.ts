@@ -90,6 +90,43 @@ export async function importFile(file: File, hints: { module?: string; subtype?:
   return data.created as Array<{ id: string; module: string; subtype: string }>
 }
 
+export type PastedQuestionPreview = {
+  title: string
+  passageText: string
+  questions: Array<{
+    number: number
+    type: 'multiple_choice' | 'short_answer'
+    prompt: string
+    options: string[] | null
+    correct_answer: string
+    explanation: string | null
+  }>
+  warnings: string[]
+  canImport: boolean
+}
+
+export async function previewPastedQuestions(text: string): Promise<PastedQuestionPreview> {
+  const res = await fetch('/api/items/paste/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || '文字解析失败')
+  return data
+}
+
+export async function importPastedQuestions(text: string, difficulty: 'easy' | 'medium' | 'hard') {
+  const res = await fetch('/api/items/paste/import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, difficulty }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error([data.error, ...(data.warnings || [])].filter(Boolean).join('；') || '文字导入失败')
+  return data as { created: { id: string; module: string; subtype: string }; questionCount: number }
+}
+
 export async function listItems(params: { module?: string; subtype?: string } = {}) {
   const qs = new URLSearchParams(params as Record<string, string>).toString()
   const res = await fetch(`/api/items${qs ? `?${qs}` : ''}`)
